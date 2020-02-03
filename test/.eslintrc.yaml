@@ -1,0 +1,7 @@
+extends: '@batterii/eslint-config-ts/test'
+rules:
+  class-methods-use-this:
+    - 'error'
+    - exceptMethods:
+        - getBaseQuery
+  '@typescript-eslint/no-non-null-assertion': off

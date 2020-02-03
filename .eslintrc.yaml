@@ -1,0 +1,3 @@
+extends: '@batterii/eslint-config-ts'
+rules:
+  '@typescript-eslint/promise-function-async': off
