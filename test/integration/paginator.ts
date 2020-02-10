@@ -1,3 +1,4 @@
+import { GetPageOptions, Page } from '../../lib';
 import { Model, PartialModelObject, knexSnakeCaseMappers } from 'objection';
 import Knex from 'knex';
 import { MemberQuery } from '../lib/member-query';
@@ -186,5 +187,34 @@ describe('PaginatedQuery (Integration)', function() {
 		({ items, remaining } = await qry.execute(cursor));
 		expect(items).to.be.empty;
 		expect(remaining).to.equal(0);
+	});
+
+	it('supports the ::getPage static method', async function() {
+		// We can just repeat part of a previous test using ::getPage.
+		const options: GetPageOptions = { limit: 2 };
+		const args = { projectId: 1 };
+		let page: Page<User>;
+
+		// First page.
+		page = await MemberQuery.getPage(options, args);
+		expect(page.items).to.have.length(2);
+		expect(page.items[0].name).to.equal('Terd Ferguson');
+		expect(page.items[1].name).to.equal('Cool Guy');
+		expect(page.remaining).to.equal(3);
+
+		// Second page
+		options.cursor = page.cursor;
+		page = await MemberQuery.getPage(options, args);
+		expect(page.items).to.have.length(2);
+		expect(page.items[0].name).to.equal('Dude Bro');
+		expect(page.items[1].name).to.equal('Steve Ripberger');
+		expect(page.remaining).to.equal(1);
+
+		// Last page.
+		options.cursor = page.cursor;
+		page = await MemberQuery.getPage(options, args);
+		expect(page.items).to.have.length(1);
+		expect(page.items[0].name).to.equal('Terd McGee');
+		expect(page.remaining).to.equal(0);
 	});
 });

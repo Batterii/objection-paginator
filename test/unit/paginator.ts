@@ -1,8 +1,8 @@
+import { GetPageOptions, Page, Paginator } from '../../lib/paginator';
 import { Model, QueryBuilder } from 'objection';
 import { Cursor } from '../../lib/cursor';
 import { FakeQuery } from '@batterii/fake-query';
 import { InvalidCursorError } from '../../lib/invalid-cursor-error';
-import { Paginator } from '../../lib/paginator';
 import { SortNode } from '../../lib/sort-node';
 import { UnknownSortError } from '../../lib/unknown-sort-error';
 import _ from 'lodash';
@@ -99,6 +99,79 @@ describe('Paginator', function() {
 		const paginator = new TestPaginator();
 
 		expect(paginator).to.have.keys([ 'limit', 'sort', 'args' ]);
+	});
+
+	describe('::getPage', function() {
+		const limit = 42;
+		const sort = 'some sort name';
+		const cursor = 'some cursor string';
+		let options: GetPageOptions;
+		let page: Page<TestModel>;
+		let execute: sinon.SinonStub;
+
+		beforeEach(function() {
+			options = { limit, sort, cursor };
+			page = {} as Page<TestModel>;
+			execute = sinon.stub(Paginator.prototype, 'execute').resolves(page);
+		});
+
+		it('executes an instance with the provided cursor', async function() {
+			const result = await TestPaginator.getPage(options);
+
+			expect(execute).to.be.calledOnce;
+			expect(execute).to.be.calledOn(
+				sinon.match.instanceOf(TestPaginator),
+			);
+			expect(execute).to.be.calledWith(cursor);
+			expect(result).to.equal(page);
+		});
+
+		it('creates the instance with the provided limit and sort', async function() {
+			await TestPaginator.getPage(options);
+			const paginator = execute.firstCall.thisValue;
+
+			expect(paginator.limit).to.equal(limit);
+			expect(paginator.sort).to.equal(sort);
+		});
+
+		it('supports omitted options', async function() {
+			const result = await TestPaginator.getPage();
+
+			expect(execute).to.be.calledOnce;
+			expect(execute).to.be.calledOn(
+				sinon.match.instanceOf(TestPaginator),
+			);
+			expect(execute).to.be.calledWith(undefined);
+			expect(result).to.equal(page);
+		});
+
+		context('required args specified in type params', function() {
+			let args: OtherPaginatorArgs;
+
+			beforeEach(function() {
+				args = {} as OtherPaginatorArgs;
+			});
+
+			it('accepts the required args', async function() {
+				const result = await OtherPaginator.getPage(options, args);
+
+				expect(execute).to.be.calledOnce;
+				expect(execute).to.be.calledOn(
+					sinon.match.instanceOf(OtherPaginator),
+				);
+				expect(execute).to.be.calledWith(cursor);
+				expect(result).to.equal(page);
+			});
+
+			it('passes the args to the instance', async function() {
+				await OtherPaginator.getPage(options, args);
+				const paginator = execute.firstCall.thisValue;
+
+				expect(paginator.limit).to.equal(limit);
+				expect(paginator.sort).to.equal(sort);
+				expect(paginator.args).to.equal(args);
+			});
+		});
 	});
 
 	describe('::_getQueryName', function() {

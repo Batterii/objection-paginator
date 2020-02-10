@@ -12,6 +12,10 @@ export interface PaginatorOptions {
 	sort?: string;
 }
 
+export interface GetPageOptions extends PaginatorOptions {
+	cursor?: string;
+}
+
 export interface Page<T extends Model> {
 	items: T[];
 	remaining: number;
@@ -19,6 +23,13 @@ export interface Page<T extends Model> {
 }
 
 type If<T> = T extends undefined ? [] : [T];
+
+interface PaginatorConstructor<TModel extends Model, TArgs = undefined> {
+	new (
+		options?: PaginatorOptions,
+		...rest: If<TArgs>
+	): Paginator<TModel, TArgs>;
+}
 
 export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	static sorts?: Record<string, SortDescriptor[]>;
@@ -36,6 +47,14 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 			sort: { value: sort || 'default', enumerable: true },
 			args: { value: rest[0], enumerable: true },
 		});
+	}
+
+	static async getPage<TModel extends Model, TArgs = undefined>(
+		this: PaginatorConstructor<TModel, TArgs>,
+		options?: GetPageOptions,
+		...rest: If<TArgs>
+	): Promise<Page<TModel>> {
+		return new this(options, ...rest).execute(options && options.cursor);
 	}
 
 	private static _getQueryName(): string {
