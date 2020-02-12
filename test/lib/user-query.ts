@@ -5,43 +5,15 @@ import { User } from './user';
 export class UserQuery extends Paginator<User> {
 	static sorts = {
 		default: [
-			{
-				column: 'role',
-				columnType: ColumnType.String,
-				direction: SortDirection.Ascending,
-			},
-			{
-				column: 'firstName',
-				columnType: ColumnType.String,
-				direction: SortDirection.Ascending,
-			},
-			{
-				column: 'lastName',
-				columnType: ColumnType.String,
-				direction: SortDirection.Ascending,
-			},
-			{
-				column: 'id',
-				columnType: ColumnType.Int,
-				direction: SortDirection.Ascending,
-			},
+			{ column: 'role' },
+			{ column: 'firstName' },
+			{ column: 'lastName' },
+			{ column: 'id', columnType: ColumnType.Int },
 		],
 		reverse: [
-			{
-				column: 'role',
-				columnType: ColumnType.String,
-				direction: SortDirection.Descending,
-			},
-			{
-				column: 'firstName',
-				columnType: ColumnType.String,
-				direction: SortDirection.Descending,
-			},
-			{
-				column: 'lastName',
-				columnType: ColumnType.String,
-				direction: SortDirection.Descending,
-			},
+			{ column: 'role', direction: SortDirection.Descending },
+			{ column: 'firstName', direction: SortDirection.Descending },
+			{ column: 'lastName', direction: SortDirection.Descending },
 			{
 				column: 'id',
 				columnType: ColumnType.Int,

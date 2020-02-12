@@ -16,7 +16,11 @@ export class ConcreteSortDescriptor {
 	validate?: ValidationFunction;
 
 	constructor(descriptor: SortDescriptor) {
-		defaults(this, descriptor, { valuePath: descriptor.column });
+		defaults(this, descriptor, {
+			columnType: ColumnType.String,
+			direction: SortDirection.Ascending,
+			valuePath: descriptor.column,
+		});
 	}
 
 	getOperator(): string {

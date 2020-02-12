@@ -32,6 +32,28 @@ describe('ConcreteSortDescriptor', function() {
 		expect(descriptor.validate).to.equal(validate);
 	});
 
+	it('uses string as the default column type', function() {
+		descriptor = new ConcreteSortDescriptor({
+			column,
+			direction,
+			valuePath,
+			validate,
+		});
+
+		expect(descriptor.columnType).to.equal(ColumnType.String);
+	});
+
+	it('uses ascending as the default sort direction', function() {
+		descriptor = new ConcreteSortDescriptor({
+			column,
+			columnType,
+			valuePath,
+			validate,
+		});
+
+		expect(descriptor.direction).to.equal(SortDirection.Ascending);
+	});
+
 	it('uses column name as the default value path', function() {
 		descriptor = new ConcreteSortDescriptor({
 			column,
