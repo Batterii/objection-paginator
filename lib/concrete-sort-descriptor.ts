@@ -41,10 +41,10 @@ export class ConcreteSortDescriptor {
 		switch (this.columnType) {
 			case ColumnType.String:
 				return isString(value);
-			case ColumnType.Number:
-				return isFinite(value);
 			case ColumnType.Int:
 				return isInteger(value);
+			case ColumnType.Float:
+				return isFinite(value);
 			case ColumnType.Boolean:
 				return isBoolean(value);
 			default:

@@ -324,7 +324,7 @@ describe('Paginator (Integration)', function() {
 			);
 			expect(err.cause).to.be.null;
 			expect(err.info).to.deep.equal({
-				columnType: ColumnType.Number,
+				columnType: ColumnType.Float,
 				value: 'foo',
 			});
 		}

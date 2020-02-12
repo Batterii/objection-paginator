@@ -5,8 +5,8 @@ export enum SortDirection {
 
 export enum ColumnType {
 	String = 'string',
-	Number = 'number',
 	Int = 'int',
+	Float = 'float',
 	Boolean = 'boolean',
 }
 

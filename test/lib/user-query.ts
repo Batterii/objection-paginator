@@ -9,7 +9,7 @@ export class UserQuery extends Paginator<User> {
 			{ column: 'role', validate: validateRole },
 			{
 				column: 'score',
-				columnType: ColumnType.Number,
+				columnType: ColumnType.Float,
 				direction: SortDirection.Descending,
 			},
 			'firstName',
@@ -27,7 +27,7 @@ export class UserQuery extends Paginator<User> {
 				direction: SortDirection.Descending,
 				validate: validateRole,
 			},
-			{ column: 'score', columnType: ColumnType.Number },
+			{ column: 'score', columnType: ColumnType.Float },
 			{ column: 'firstName', direction: SortDirection.Descending },
 			{ column: 'lastName', direction: SortDirection.Descending },
 			{

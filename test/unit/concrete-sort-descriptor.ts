@@ -115,17 +115,17 @@ describe('ConcreteSortDescriptor', function() {
 	describe('#checkCursorValue', function() {
 		const value = 'provided value';
 		const isStringResult = 'isString result';
-		const isFiniteResult = 'isFinite result';
 		const isIntegerResult = 'isInteger result';
+		const isFiniteResult = 'isFinite result';
 		const isBooleanResult = 'isBoolean result';
 
 		beforeEach(function() {
 			sinon.stub(_, 'isString').callThrough()
 				.withArgs(value).returns(isStringResult as any);
-			sinon.stub(_, 'isFinite').callThrough()
-				.withArgs(value).returns(isFiniteResult as any);
 			sinon.stub(_, 'isInteger').callThrough()
 				.withArgs(value).returns(isIntegerResult as any);
+			sinon.stub(_, 'isFinite').callThrough()
+				.withArgs(value).returns(isFiniteResult as any);
 			sinon.stub(_, 'isBoolean').callThrough()
 				.withArgs(value).returns(isBooleanResult as any);
 		});
@@ -134,12 +134,6 @@ describe('ConcreteSortDescriptor', function() {
 			descriptor.columnType = ColumnType.String;
 
 			expect(descriptor.checkCursorValue(value)).to.equal(isStringResult);
-		});
-
-		it('checks the value with isFinite, if columnType is number', function() {
-			descriptor.columnType = ColumnType.Number;
-
-			expect(descriptor.checkCursorValue(value)).to.equal(isFiniteResult);
 		});
 
 		it('checks the value with isString, if columnType is int', function() {
@@ -154,6 +148,12 @@ describe('ConcreteSortDescriptor', function() {
 
 			expect(descriptor.checkCursorValue(value))
 				.to.equal(isBooleanResult);
+		});
+
+		it('checks the value with isFinite, if columnType is number', function() {
+			descriptor.columnType = ColumnType.Float;
+
+			expect(descriptor.checkCursorValue(value)).to.equal(isFiniteResult);
 		});
 
 		it('throws for any other columnType', function() {
