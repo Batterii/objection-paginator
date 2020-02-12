@@ -1,5 +1,5 @@
 import { Model, QueryBuilder } from 'objection';
-import { isObject, last, mapValues, omit } from 'lodash';
+import { isEmpty, isObject, last, mapValues, omit } from 'lodash';
 import { Cursor } from './cursor';
 import { InvalidCursorError } from './invalid-cursor-error';
 import { SortDescriptor } from './sort-descriptor';
@@ -105,7 +105,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 		if (args === undefined) return;
 		const { varyArgs } = this._cls;
 		if (varyArgs && isObject(args)) args = omit(args, varyArgs);
-		return md5(args);
+		if (!isEmpty(args)) return md5(args);
 	}
 
 	private _createCursor(item?: TModel): Cursor {

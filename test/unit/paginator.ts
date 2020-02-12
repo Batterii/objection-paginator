@@ -427,7 +427,12 @@ describe('Paginator', function() {
 			static varyArgs = [ 'foo' ];
 		}
 
-		class YetAnotherPaginator extends Paginator<TestModel, string> {
+		class YetAnotherPaginator extends OtherPaginator {
+			static queryName = 'YetAnother';
+			static varyArgs = [ 'foo', 'bar' ];
+		}
+
+		class OneMorePaginator extends Paginator<TestModel, string> {
 			static varyArgs = [ 'bar' ];
 
 			getBaseQuery(): QueryBuilder<TestModel> {
@@ -469,8 +474,17 @@ describe('Paginator', function() {
 			expect(result).to.equal(argsHash);
 		});
 
+		it('returns undefined if there are no unfiltered args', function() {
+			const paginator = new YetAnotherPaginator({}, args);
+
+			const result = (paginator as any)._getArgsHash();
+
+			expect(md5).to.not.be.called;
+			expect(result).to.be.undefined;
+		});
+
 		it('ignores varyArgs if args is not an object', function() {
-			const paginator = new YetAnotherPaginator({}, 'wowee');
+			const paginator = new OneMorePaginator({}, 'wowee');
 
 			const result = (paginator as any)._getArgsHash();
 
