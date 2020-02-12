@@ -1,5 +1,5 @@
 import { Model, QueryBuilder } from 'objection';
-import { last, mapValues } from 'lodash';
+import { isObject, last, mapValues, omit } from 'lodash';
 import { Cursor } from './cursor';
 import { InvalidCursorError } from './invalid-cursor-error';
 import { SortDescriptor } from './sort-descriptor';
@@ -35,6 +35,7 @@ interface PaginatorConstructor<TModel extends Model, TArgs = undefined> {
 export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	static sorts?: Record<string, (SortDescriptor|string)[]>;
 	static queryName?: string;
+	static varyArgs?: string[];
 	private static _sortNodes?: Record<string, SortNode|undefined>;
 
 	readonly limit: number;
@@ -99,13 +100,21 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 		throw new UnknownSortError({ info: { sort: this.sort } });
 	}
 
+	private _getArgsHash(): string|undefined {
+		let args = this.args as any;
+		if (args === undefined) return;
+		const { varyArgs } = this._cls;
+		if (varyArgs && isObject(args)) args = omit(args, varyArgs);
+		return md5(args);
+	}
+
 	private _createCursor(item?: TModel): Cursor {
 		return new Cursor(
 			// eslint-disable-next-line no-underscore-dangle
 			this._cls._getQueryName(),
 			this.sort,
 			item && this._getSortNode().getCursorValues(item),
-			this.args && md5(this.args),
+			this._getArgsHash(),
 		);
 	}
 

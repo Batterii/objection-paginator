@@ -23,6 +23,7 @@ class TestPaginator extends Paginator<TestModel> {
 
 interface OtherPaginatorArgs {
 	foo: string;
+	bar: string;
 }
 
 class OtherPaginator extends Paginator<TestModel, OtherPaginatorArgs> {
@@ -66,7 +67,7 @@ describe('Paginator', function() {
 
 
 	it('allows specifying required args in type param', function() {
-		const args = { foo: 'bar' };
+		const args = { foo: 'baz', bar: 'qux' };
 		const paginator = new OtherPaginator({}, args);
 
 		expect(paginator.args).to.equal(args);
@@ -89,7 +90,7 @@ describe('Paginator', function() {
 	});
 
 	it('prevents assiging over args after creation', function() {
-		const paginator = new OtherPaginator({}, { foo: 'baz' });
+		const paginator = new OtherPaginator({}, { foo: 'baz', bar: 'qux' });
 
 		expect(() => {
 			(paginator as any).args = {};
@@ -416,25 +417,86 @@ describe('Paginator', function() {
 		});
 	});
 
+	describe('#_getArgsHash', function() {
+		const argsHash = 'args hash';
+		let args: OtherPaginatorArgs;
+		let md5: sinon.SinonStub;
+
+		class AnotherPaginator extends OtherPaginator {
+			static queryName = 'Another';
+			static varyArgs = [ 'foo' ];
+		}
+
+		class YetAnotherPaginator extends Paginator<TestModel, string> {
+			static varyArgs = [ 'bar' ];
+
+			getBaseQuery(): QueryBuilder<TestModel> {
+				return TestModel.query();
+			}
+		}
+
+		beforeEach(function() {
+			args = { foo: 'baz', bar: 'qux' };
+			md5 = sinon.stub(objectHash, 'MD5').returns(argsHash);
+		});
+
+		it('returns the md5 hash of the args object', function() {
+			const paginator = new OtherPaginator({}, args);
+
+			const result = (paginator as any)._getArgsHash();
+
+			expect(md5).to.be.calledOnce;
+			expect(md5).to.be.calledWith(args);
+			expect(result).to.equal(argsHash);
+		});
+
+		it('simply returns undefined if there are is no args object', function() {
+			const paginator = new TestPaginator();
+
+			const result = (paginator as any)._getArgsHash();
+
+			expect(md5).to.not.be.called;
+			expect(result).to.be.undefined;
+		});
+
+		it('filters out properties in varyArgs', function() {
+			const paginator = new AnotherPaginator({}, args);
+
+			const result = (paginator as any)._getArgsHash();
+
+			expect(md5).to.be.calledOnce;
+			expect(md5).to.be.calledWith({ bar: 'qux' });
+			expect(result).to.equal(argsHash);
+		});
+
+		it('ignores varyArgs if args is not an object', function() {
+			const paginator = new YetAnotherPaginator({}, 'wowee');
+
+			const result = (paginator as any)._getArgsHash();
+
+			expect(md5).to.be.calledOnce;
+			expect(md5).to.be.calledWith('wowee');
+			expect(result).to.equal(argsHash);
+		});
+	});
+
 	describe('#_createCursor', function() {
 		const queryName = 'some query name';
 		const sort = 'some sort name';
 		const argsHash = 'args hash';
-		let args: OtherPaginatorArgs;
 		let paginator: Paginator<TestModel, any>;
 		let item: TestModel;
 		let getQueryName: sinon.SinonStub;
 		let cursorValues: any[];
 		let sortNode: sinon.SinonStubbedInstance<SortNode>;
 		let getSortNode: sinon.SinonStub;
-		let md5: sinon.SinonStub;
+		let getArgsHash: sinon.SinonStub;
 
 		beforeEach(function() {
-			args = { foo: 'baz' };
-			paginator = new OtherPaginator({ sort }, args);
+			paginator = new TestPaginator({ sort });
 			item = {} as TestModel;
 
-			getQueryName = sinon.stub(OtherPaginator as any, '_getQueryName')
+			getQueryName = sinon.stub(TestPaginator as any, '_getQueryName')
 				.returns(queryName);
 
 			cursorValues = [];
@@ -443,14 +505,15 @@ describe('Paginator', function() {
 				.returns(sortNode);
 			sortNode.getCursorValues.returns(cursorValues);
 
-			md5 = sinon.stub(objectHash, 'MD5').returns(argsHash);
+			getArgsHash = sinon.stub(paginator as any, '_getArgsHash')
+				.returns(argsHash);
 		});
 
 		it('gets the query name from the class', function() {
 			(paginator as any)._createCursor(item);
 
 			expect(getQueryName).to.be.calledOnce;
-			expect(getQueryName).to.be.calledOn(OtherPaginator);
+			expect(getQueryName).to.be.calledOn(TestPaginator);
 		});
 
 		it('gets the sort node', function() {
@@ -470,11 +533,11 @@ describe('Paginator', function() {
 			);
 		});
 
-		it('hashes the args object with MD5', function() {
+		it('gets the args hash', function() {
 			(paginator as any)._createCursor(item);
 
-			expect(md5).to.be.calledOnce;
-			expect(md5).to.be.calledWith(sinon.match.same(args));
+			expect(getArgsHash).to.be.calledOnce;
+			expect(getArgsHash).to.be.calledOn(paginator);
 		});
 
 		it('returns a new cursor with the query name, sort name, values, and args hash', function() {
@@ -496,23 +559,6 @@ describe('Paginator', function() {
 			expect(result.sort).to.equal(sort);
 			expect(result.values).to.be.undefined;
 			expect(result.argsHash).to.equal(argsHash);
-		});
-
-		it('skips args hash if there are paginator args', function() {
-			paginator = new TestPaginator({ sort });
-			getQueryName = sinon.stub(TestPaginator as any, '_getQueryName')
-				.returns(queryName);
-			getSortNode = sinon.stub(paginator as any, '_getSortNode')
-				.returns(sortNode);
-
-			const result = (paginator as any)._createCursor(item);
-
-			expect(md5).to.not.be.called;
-			expect(result).to.be.an.instanceOf(Cursor);
-			expect(result.query).to.equal(queryName);
-			expect(result.sort).to.equal(sort);
-			expect(result.values).to.equal(cursorValues);
-			expect(result.argsHash).to.be.undefined;
 		});
 	});
 
@@ -560,7 +606,7 @@ describe('Paginator', function() {
 		let md5: sinon.SinonStub;
 
 		beforeEach(function() {
-			args = { foo: 'bar' };
+			args = { foo: 'baz', bar: 'qux' };
 			paginator = new OtherPaginator({ sort: 'foo' }, args);
 			cursor = new Cursor(
 				'cursor query name',
