@@ -145,7 +145,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 			});
 		}
 
-		if (this.args && cursor.argsHash !== md5(this.args)) {
+		if (cursor.argsHash !== this._getArgsHash()) {
 			throw new InvalidCursorError(
 				'Args hash mismatch',
 				{ info: { expectedArgs: this.args } },
