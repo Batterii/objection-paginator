@@ -5,9 +5,9 @@ import { User } from './user';
 export class UserQuery extends Paginator<User> {
 	static sorts = {
 		default: [
-			{ column: 'role' },
-			{ column: 'firstName' },
-			{ column: 'lastName' },
+			'role',
+			'firstName',
+			'lastName',
 			{ column: 'id', columnType: ColumnType.Int },
 		],
 		reverse: [

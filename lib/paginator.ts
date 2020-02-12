@@ -32,7 +32,7 @@ interface PaginatorConstructor<TModel extends Model, TArgs = undefined> {
 }
 
 export abstract class Paginator<TModel extends Model, TArgs = undefined> {
-	static sorts?: Record<string, SortDescriptor[]>;
+	static sorts?: Record<string, (SortDescriptor|string)[]>;
 	static queryName?: string;
 	private static _sortNodes?: Record<string, SortNode|undefined>;
 

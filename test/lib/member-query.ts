@@ -10,8 +10,8 @@ export class MemberQuery extends Paginator<User, MemberQueryArgs> {
 	static sorts = {
 		default: [
 			{ column: 'memberships.role', valuePath: 'memberships.0.role' },
-			{ column: 'firstName' },
-			{ column: 'lastName' },
+			'firstName',
+			'lastName',
 			{
 				column: 'users.id',
 				columnType: ColumnType.Int,

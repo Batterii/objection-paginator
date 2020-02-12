@@ -62,7 +62,7 @@ describe('ConcreteSortDescriptor', function() {
 			validate,
 		});
 
-		expect(descriptor.columnType).to.equal(columnType);
+		expect(descriptor.valuePath).to.equal(column);
 	});
 
 	it('does not use a default validation function', function() {
@@ -73,6 +73,16 @@ describe('ConcreteSortDescriptor', function() {
 			valuePath,
 		});
 
+		expect(descriptor.validate).to.be.undefined;
+	});
+
+	it('supports specifing descriptor as a string for column name only', function() {
+		descriptor = new ConcreteSortDescriptor(column);
+
+		expect(descriptor.column).to.equal(column);
+		expect(descriptor.columnType).to.equal(ColumnType.String);
+		expect(descriptor.direction).to.equal(SortDirection.Ascending);
+		expect(descriptor.valuePath).to.equal(column);
 		expect(descriptor.validate).to.be.undefined;
 	});
 

@@ -15,7 +15,8 @@ export class ConcreteSortDescriptor {
 	valuePath: string;
 	validate?: ValidationFunction;
 
-	constructor(descriptor: SortDescriptor) {
+	constructor(descriptor: SortDescriptor | string) {
+		if (isString(descriptor)) descriptor = { column: descriptor };
 		defaults(this, descriptor, {
 			columnType: ColumnType.String,
 			direction: SortDirection.Ascending,
@@ -63,7 +64,7 @@ export class ConcreteSortDescriptor {
 
 		const validateResult = this.validate ? this.validate(value) : true;
 		let isValid: boolean;
-		let msg: string|undefined;
+		let msg: string | undefined;
 		if (isString(validateResult)) {
 			isValid = false;
 			msg = validateResult;
