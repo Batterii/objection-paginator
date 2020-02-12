@@ -4,4 +4,5 @@ rules:
     - 'error'
     - exceptMethods:
         - getBaseQuery
+        - $parseDatabaseJson
   '@typescript-eslint/no-non-null-assertion': off

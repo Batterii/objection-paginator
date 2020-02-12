@@ -1,6 +1,11 @@
 import { Model } from 'objection';
 import { User } from './user';
 
+export enum MemberRole {
+	RegularMember = 'regularMember',
+	Manager = 'manager',
+}
+
 export class Membership extends Model {
 	static tableName = 'memberships';
 

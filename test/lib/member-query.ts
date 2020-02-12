@@ -1,4 +1,5 @@
 import { ColumnType, Paginator } from '../../lib';
+import { MemberRole } from './membership';
 import { QueryBuilder } from 'objection';
 import { User } from './user';
 
@@ -9,7 +10,14 @@ export interface MemberQueryArgs {
 export class MemberQuery extends Paginator<User, MemberQueryArgs> {
 	static sorts = {
 		default: [
-			{ column: 'memberships.role', valuePath: 'memberships.0.role' },
+			{
+				column: 'memberships.role',
+				valuePath: 'memberships.0.role',
+				validate: (v: any) => {
+					if (Object.values(MemberRole).includes(v)) return true;
+					return `Unknown member role '${v}'`;
+				},
+			},
 			'firstName',
 			'lastName',
 			{
