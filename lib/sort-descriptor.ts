@@ -10,9 +10,14 @@ export enum ColumnType {
 	Boolean = 'boolean',
 }
 
+export interface ValidationFunction {
+	(value: any): boolean | string;
+}
+
 export interface SortDescriptor {
 	column: string;
 	columnType: ColumnType;
 	direction: SortDirection;
 	valuePath?: string;
+	validate?: ValidationFunction;
 }

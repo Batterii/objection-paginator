@@ -7,49 +7,54 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 
 describe('ConcreteSortDescriptor', function() {
-	it('stores info from the provided descriptor', function() {
-		const column = 'some column name';
-		const columnType = 'some column type' as ColumnType;
-		const direction = 'sort direction' as SortDirection;
-		const valuePath = 'value path';
+	const column = 'some column name';
+	const columnType = 'some column type' as ColumnType;
+	const direction = 'sort direction' as SortDirection;
+	const valuePath = 'value path';
+	const validate = () => true;
+	let descriptor: ConcreteSortDescriptor;
 
-		const descriptor = new ConcreteSortDescriptor({
+	beforeEach(function() {
+		descriptor = new ConcreteSortDescriptor({
+			column,
+			columnType,
+			direction,
+			valuePath,
+			validate,
+		});
+	});
+
+	it('stores info from the provided descriptor', function() {
+		expect(descriptor.column).to.equal(column);
+		expect(descriptor.columnType).to.equal(columnType);
+		expect(descriptor.direction).to.equal(direction);
+		expect(descriptor.valuePath).to.equal(valuePath);
+		expect(descriptor.validate).to.equal(validate);
+	});
+
+	it('uses column name as the default value path', function() {
+		descriptor = new ConcreteSortDescriptor({
+			column,
+			columnType,
+			direction,
+			validate,
+		});
+
+		expect(descriptor.columnType).to.equal(columnType);
+	});
+
+	it('does not use a default validation function', function() {
+		descriptor = new ConcreteSortDescriptor({
 			column,
 			columnType,
 			direction,
 			valuePath,
 		});
 
-		expect(descriptor.column).to.equal(column);
-		expect(descriptor.columnType).to.equal(columnType);
-		expect(descriptor.direction).to.equal(direction);
-		expect(descriptor.valuePath).to.equal(valuePath);
-	});
-
-	it('uses column name as the default value path', function() {
-		const column = 'some column name';
-		const columnType = 'some column type' as ColumnType;
-		const direction = 'sort direction' as SortDirection;
-
-		const descriptor = new ConcreteSortDescriptor({
-			column,
-			columnType,
-			direction,
-		});
-
-		expect(descriptor.column).to.equal(column);
-		expect(descriptor.columnType).to.equal(columnType);
-		expect(descriptor.direction).to.equal(direction);
-		expect(descriptor.valuePath).to.equal(column);
+		expect(descriptor.validate).to.be.undefined;
 	});
 
 	describe('#getOperator', function() {
-		let descriptor: ConcreteSortDescriptor;
-
-		beforeEach(function() {
-			descriptor = new ConcreteSortDescriptor({} as any);
-		});
-
 		it('returns \'>\' for ascending direction', function() {
 			descriptor.direction = SortDirection.Ascending;
 
@@ -81,11 +86,8 @@ describe('ConcreteSortDescriptor', function() {
 		const isFiniteResult = 'isFinite result';
 		const isIntegerResult = 'isInteger result';
 		const isBooleanResult = 'isBoolean result';
-		let descriptor: ConcreteSortDescriptor;
 
 		beforeEach(function() {
-			descriptor = new ConcreteSortDescriptor({} as any);
-
 			sinon.stub(_, 'isString').callThrough()
 				.withArgs(value).returns(isStringResult as any);
 			sinon.stub(_, 'isFinite').callThrough()
@@ -135,48 +137,112 @@ describe('ConcreteSortDescriptor', function() {
 		});
 	});
 
-	describe('#getNextCursorValue', function() {
-		let descriptor: ConcreteSortDescriptor;
-		let values: any[];
+	describe('#validateCursorValue', function() {
+		const value = 'provided value';
 		let checkCursorValue: sinon.SinonStub;
+		let validateStub: sinon.SinonStub;
 
 		beforeEach(function() {
-			descriptor = new ConcreteSortDescriptor({} as any);
-			descriptor.columnType = 'some column type' as ColumnType;
-			values = [ 'foo', 'bar' ];
 			checkCursorValue = sinon.stub(descriptor, 'checkCursorValue')
 				.returns(true);
+			validateStub = sinon.stub(descriptor, 'validate').returns(true);
 		});
 
-		it('checks the first elemet of the provided values', function() {
-			descriptor.getNextCursorValue(values);
+		it('checks the provided cursor value against the column type', function() {
+			descriptor.validateCursorValue(value);
 
 			expect(checkCursorValue).to.be.calledOnce;
 			expect(checkCursorValue).to.be.calledOn(descriptor);
-			expect(checkCursorValue).to.be.calledWith('foo');
+			expect(checkCursorValue).to.be.calledWith(value);
 		});
 
-		it('returns the first element if it passes the check', function() {
-			expect(descriptor.getNextCursorValue(values)).to.equal('foo');
+		it('checks the value with the validation function, if any', function() {
+			descriptor.validateCursorValue(value);
+
+			expect(validateStub).to.be.calledOnce;
+			expect(validateStub).to.be.calledOn(descriptor);
+			expect(validateStub).to.be.calledWith(value);
 		});
 
-		it('throws if the first element does not pass the check', function() {
+		it('skips the validation function, if there is none', function() {
+			delete descriptor.validate;
+
+			descriptor.validateCursorValue(value);
+
+			expect(validateStub).to.not.be.called;
+		});
+
+		it('returns the provided value', function() {
+			expect(descriptor.validateCursorValue(value)).to.equal(value);
+		});
+
+		it('throws without calling validation function, if type check fails', function() {
 			checkCursorValue.returns(false);
 
 			expect(() => {
-				descriptor.getNextCursorValue(values);
+				descriptor.validateCursorValue(value);
 			}).to.throw(InvalidCursorError)
 				.that.satisfies((err: InvalidCursorError) => {
 					expect(err.shortMessage).to.equal(
 						'Cursor value does not match its column type',
 					);
 					expect(err.cause).to.be.null;
-					expect(err.info).to.deep.equal({
-						value: 'foo',
-						columnType: descriptor.columnType,
-					});
+					expect(err.info).to.deep.equal({ value, columnType });
 					return true;
 				});
+			expect(validateStub).to.not.be.called;
+		});
+
+		it('throws if the validation function returns false', function() {
+			validateStub.returns(false);
+
+			expect(() => {
+				descriptor.validateCursorValue(value);
+			}).to.throw(InvalidCursorError)
+				.that.satisfies((err: InvalidCursorError) => {
+					expect(err.shortMessage).to.equal('Invalid cursor value');
+					expect(err.cause).to.be.null;
+					expect(err.info).to.deep.equal({ value });
+					return true;
+				});
+		});
+
+		it('uses custom message if returned from the validation function', function() {
+			const msg = 'custom error message';
+			validateStub.returns(msg);
+
+			expect(() => {
+				descriptor.validateCursorValue(value);
+			}).to.throw(InvalidCursorError)
+				.that.satisfies((err: InvalidCursorError) => {
+					expect(err.shortMessage).to.equal(msg);
+					expect(err.cause).to.be.null;
+					expect(err.info).to.deep.equal({ value });
+					return true;
+				});
+		});
+	});
+
+	describe('#getNextCursorValue', function() {
+		let values: any[];
+		let validateCursorValue: sinon.SinonStub;
+
+		beforeEach(function() {
+			values = [ 'foo', 'bar' ];
+			validateCursorValue = sinon.stub(descriptor, 'validateCursorValue')
+				.returnsArg(0);
+		});
+
+		it('validates the first element of the provided values', function() {
+			descriptor.getNextCursorValue(values);
+
+			expect(validateCursorValue).to.be.calledOnce;
+			expect(validateCursorValue).to.be.calledOn(descriptor);
+			expect(validateCursorValue).to.be.calledWith('foo');
+		});
+
+		it('returns the first element', function() {
+			expect(descriptor.getNextCursorValue(values)).to.equal('foo');
 		});
 	});
 });
