@@ -174,7 +174,7 @@ describe('Paginator (Integration)', function() {
 		expect(items[1].name).to.equal('Cool Guy');
 		expect(remaining).to.equal(3);
 
-		// // Second page.
+		// Second page.
 		({ items, remaining, cursor } = await qry.execute(cursor));
 		expect(items).to.have.length(2);
 		expect(items[0].name).to.equal('Dude Bro');
@@ -286,6 +286,29 @@ describe('Paginator (Integration)', function() {
 				expectedArgs: { projectId: 2 },
 			});
 		}
+	});
+
+	it('allows varible args if specified with varyArgs', async function() {
+		const options = { limit: 2 };
+		const qry = new MemberQuery(options, { projectId: 1, ctx: 'foo' });
+		const other = new MemberQuery(options, { projectId: 1, ctx: 'bar' });
+		let items: User[];
+		let remaining: number;
+		let cursor: string;
+
+		// Get the first page with one paginator.
+		({ items, remaining, cursor } = await qry.execute());
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Terd Ferguson');
+		expect(items[1].name).to.equal('Cool Guy');
+		expect(remaining).to.equal(3);
+
+		// Get the next one with the other, to ensure varying arg is allowed.
+		({ items, remaining, cursor } = await other.execute(cursor));
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Dude Bro');
+		expect(items[1].name).to.equal('Steve Ripberger');
+		expect(remaining).to.equal(1);
 	});
 
 	it('validates cursor values against column types', async function() {

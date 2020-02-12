@@ -5,6 +5,7 @@ import { User } from './user';
 
 export interface MemberQueryArgs {
 	projectId: number;
+	ctx?: any,
 }
 
 export class MemberQuery extends Paginator<User, MemberQueryArgs> {
@@ -27,6 +28,7 @@ export class MemberQuery extends Paginator<User, MemberQueryArgs> {
 			},
 		],
 	};
+	static varyArgs = [ 'ctx' ];
 
 	getBaseQuery(): QueryBuilder<User> {
 		return User.query()
