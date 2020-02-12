@@ -6,6 +6,7 @@ import { SortDescriptor } from './sort-descriptor';
 import { SortNode } from './sort-node';
 import { UnknownSortError } from './unknown-sort-error';
 import { createSortNode } from './create-sort-node';
+import { MD5 as md5 } from 'object-hash';
 
 export interface PaginatorOptions {
 	limit?: number;
@@ -104,6 +105,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 			this._cls._getQueryName(),
 			this.sort,
 			item && this._getSortNode().getCursorValues(item),
+			this.args && md5(this.args),
 		);
 	}
 
@@ -114,7 +116,6 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	private _validateCursor(cursor: Cursor): Cursor {
 		// eslint-disable-next-line no-underscore-dangle
 		const queryName = this._cls._getQueryName();
-
 		if (cursor.query !== queryName) {
 			throw new InvalidCursorError({
 				shortMessage: 'Cursor is for a different query',
@@ -133,6 +134,13 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 					expectedSort: this.sort,
 				},
 			});
+		}
+
+		if (this.args && cursor.argsHash !== md5(this.args)) {
+			throw new InvalidCursorError(
+				'Args hash mismatch',
+				{ info: { expectedArgs: this.args } },
+			);
 		}
 
 		return cursor;

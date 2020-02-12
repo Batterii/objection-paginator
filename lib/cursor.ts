@@ -10,6 +10,7 @@ import { is } from 'nani';
 export interface CursorObj {
 	q: string;
 	s: string;
+	a?: string;
 	v?: any[];
 }
 
@@ -17,15 +18,22 @@ export class Cursor {
 	query: string;
 	sort: string;
 	values?: any[];
+	argsHash?: string;
 
-	constructor(query: string, sort: string, values?: any[]) {
+	constructor(
+		query: string,
+		sort: string,
+		values?: any[],
+		argsHash?: string,
+	) {
 		this.query = query;
 		this.sort = sort;
 		this.values = values;
+		this.argsHash = argsHash;
 	}
 
 	static fromObject(obj: CursorObj): Cursor {
-		return new Cursor(obj.q, obj.s, obj.v);
+		return new Cursor(obj.q, obj.s, obj.v, obj.a);
 	}
 
 	static validateObject(value: any): CursorObj {
@@ -47,6 +55,13 @@ export class Cursor {
 			throw new InvalidCursorError(
 				'Cursor \'s\' is not a string',
 				{ info: { s: value.s } },
+			);
+		}
+
+		if (value.a !== undefined && !isString(value.a)) {
+			throw new InvalidCursorError(
+				'Cursor \'a\' is not a string',
+				{ info: { a: value.a } },
 			);
 		}
 
@@ -77,6 +92,7 @@ export class Cursor {
 
 	toObject(): CursorObj {
 		const obj: CursorObj = { q: this.query, s: this.sort };
+		if (this.argsHash) obj.a = this.argsHash;
 		if (this.values) obj.v = this.values;
 		return obj;
 	}

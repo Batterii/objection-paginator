@@ -230,10 +230,11 @@ describe('Paginator (Integration)', function() {
 		expect(page.remaining).to.equal(0);
 	});
 
-	it('checks cursor query and sort names', async function() {
+	it('checks cursor query names, sort names, and args hash', async function() {
 		const userQuery = new UserQuery();
 		const memberQuery = new MemberQuery({}, { projectId: 1 });
 		const reverseUserQuery = new UserQuery({ sort: 'reverse' });
+		const otherMemberQuery = new MemberQuery({}, { projectId: 2 });
 
 		// Get a cursor for a default user query.
 		const { cursor: userCursor } = await userQuery.execute();
@@ -267,6 +268,22 @@ describe('Paginator (Integration)', function() {
 			expect(err.info).to.deep.equal({
 				cursorSort: 'default',
 				expectedSort: 'reverse',
+			});
+		}
+
+		// Get a cursor for the member query in project 1.
+		const { cursor: memberCursor } = await memberQuery.execute();
+
+		// Send it to the member query for project 2 and make sure it fails.
+		try {
+			await otherMemberQuery.execute(memberCursor);
+			expect.fail('Promise should have rejected');
+		} catch (err) {
+			if (!is(err, InvalidCursorError)) throw err;
+			expect(err.shortMessage).to.equal('Args hash mismatch');
+			expect(err.cause).to.be.null;
+			expect(err.info).to.deep.equal({
+				expectedArgs: { projectId: 2 },
 			});
 		}
 	});
