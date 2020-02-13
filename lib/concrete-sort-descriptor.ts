@@ -4,9 +4,10 @@ import {
 	SortDirection,
 	ValidationFunction,
 } from './sort-descriptor';
+import { ValidationCase, getErrorClass } from './get-error-class';
 import { defaults, isBoolean, isFinite, isInteger, isString } from 'lodash';
 import { ConfigurationError } from './configuration-error';
-import { InvalidCursorError } from './invalid-cursor-error';
+import { get as getPath } from 'object-path';
 
 export class ConcreteSortDescriptor {
 	column: string;
@@ -54,9 +55,9 @@ export class ConcreteSortDescriptor {
 		}
 	}
 
-	validateCursorValue(value: any): any {
+	validateCursorValue(value: any, validationCase: ValidationCase): any {
 		if (!this.checkCursorValue(value)) {
-			throw new InvalidCursorError(
+			throw new (getErrorClass(validationCase))(
 				'Cursor value does not match its column type',
 				{ info: { value, columnType: this.columnType } },
 			);
@@ -74,10 +75,17 @@ export class ConcreteSortDescriptor {
 		}
 
 		if (isValid) return value;
-		throw new InvalidCursorError(msg, { info: { value } });
+		throw new (getErrorClass(validationCase))(msg, { info: { value } });
+	}
+
+	getCursorValue(entity: object): any {
+		return this.validateCursorValue(
+			getPath(entity, this.valuePath),
+			ValidationCase.Configuration,
+		);
 	}
 
 	getNextCursorValue(values: any[]): any {
-		return this.validateCursorValue(values[0]);
+		return this.validateCursorValue(values[0], ValidationCase.Cursor);
 	}
 }

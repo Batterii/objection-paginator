@@ -10,7 +10,6 @@ import { FakeQuery } from '@batterii/fake-query';
 import { SortDirection } from '../../lib/sort-descriptor';
 import { SortNode } from '../../lib/sort-node';
 import { expect } from 'chai';
-import objectPath from 'object-path';
 import sinon from 'sinon';
 
 describe('SortNode', function() {
@@ -156,27 +155,26 @@ describe('SortNode', function() {
 	});
 
 	describe('#getCursorValues', function() {
-		const valuePath = 'cursor value path';
 		const value = 'cursor value';
-		let descriptor: ConcreteSortDescriptor;
+		let descriptor: sinon.SinonStubbedInstance<ConcreteSortDescriptor>;
 		let node: SortNode;
 		let entity: object;
-		let getPath: sinon.SinonStub;
 
 		beforeEach(function() {
-			descriptor = { valuePath } as ConcreteSortDescriptor;
+			descriptor = sinon.createStubInstance(ConcreteSortDescriptor);
+			descriptor.getCursorValue.returns(value);
+
 			node = new SortNode([ descriptor ]);
 			entity = {};
-			getPath = sinon.stub(objectPath, 'get').returns(value);
 		});
 
-		it('gets the first cursor value from the entity path', function() {
+		it('gets the first cursor value from the provided entity', function() {
 			node.getCursorValues(entity);
 
-			expect(getPath).to.be.calledOnce;
-			expect(getPath).to.be.calledWith(
+			expect(descriptor.getCursorValue).to.be.calledOnce;
+			expect(descriptor.getCursorValue).to.be.calledOn(descriptor);
+			expect(descriptor.getCursorValue).to.be.calledWith(
 				sinon.match.same(entity),
-				valuePath,
 			);
 		});
 

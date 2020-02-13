@@ -1,7 +1,6 @@
 import { Model, OrderByDescriptor, QueryBuilder } from 'objection';
 import { ConcreteSortDescriptor } from './concrete-sort-descriptor';
 import { ConfigurationError } from './configuration-error';
-import { get as getPath } from 'object-path';
 import { isEmpty } from 'lodash';
 
 export class SortNode {
@@ -31,28 +30,17 @@ export class SortNode {
 	}
 
 	getOrderByDescriptors(): OrderByDescriptor[] {
-		// First, create the descriptor for this node.
-		const { column, direction } = this.descriptor;
+		const { descriptor, child } = this;
+		const { column, direction } = descriptor;
 		const result: OrderByDescriptor[] = [ { column, order: direction } ];
-
-		// Append descriptors from the child, if any.
-		const { child } = this;
 		if (child) result.push(...child.getOrderByDescriptors());
-
-		// Return the resulting descriptors.
 		return result;
 	}
 
 	getCursorValues(entity: object): any[] {
-		// First, get the cursor value for this node.
-		const value = getPath(entity, this.descriptor.valuePath);
-		const result = [ value ];
-
-		// Append values from the child, if any.
-		const { child } = this;
+		const { descriptor, child } = this;
+		const result = [ descriptor.getCursorValue(entity) ];
 		if (child) result.push(...child.getCursorValues(entity));
-
-		// Return the resulting cursor values.
 		return result;
 	}
 

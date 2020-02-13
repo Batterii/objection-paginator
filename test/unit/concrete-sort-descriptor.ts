@@ -1,10 +1,15 @@
+import * as getErrorClassModule from '../../lib/get-error-class';
 import { ColumnType, SortDirection } from '../../lib/sort-descriptor';
 import { ConcreteSortDescriptor } from '../../lib/concrete-sort-descriptor';
 import { ConfigurationError } from '../../lib/configuration-error';
-import { InvalidCursorError } from '../../lib/invalid-cursor-error';
+import { ObjectionPaginatorError } from '../../lib/objection-paginator-error';
 import _ from 'lodash';
 import { expect } from 'chai';
+import objectPath from 'object-path';
 import sinon from 'sinon';
+
+const { ValidationCase } = getErrorClassModule;
+type ValidationCase = getErrorClassModule.ValidationCase;
 
 describe('ConcreteSortDescriptor', function() {
 	const column = 'some column name';
@@ -171,17 +176,24 @@ describe('ConcreteSortDescriptor', function() {
 
 	describe('#validateCursorValue', function() {
 		const value = 'provided value';
+		let validationCase: ValidationCase;
 		let checkCursorValue: sinon.SinonStub;
 		let validateStub: sinon.SinonStub;
 
+		// A fake error class to make sure we're using getErrorClass.
+		class TestValidationError extends ObjectionPaginatorError {}
+
 		beforeEach(function() {
+			validationCase = -1 as ValidationCase;
 			checkCursorValue = sinon.stub(descriptor, 'checkCursorValue')
 				.returns(true);
 			validateStub = sinon.stub(descriptor, 'validate').returns(true);
+			sinon.stub(getErrorClassModule, 'getErrorClass')
+				.withArgs(validationCase).returns(TestValidationError);
 		});
 
 		it('checks the provided cursor value against the column type', function() {
-			descriptor.validateCursorValue(value);
+			descriptor.validateCursorValue(value, validationCase);
 
 			expect(checkCursorValue).to.be.calledOnce;
 			expect(checkCursorValue).to.be.calledOn(descriptor);
@@ -189,7 +201,7 @@ describe('ConcreteSortDescriptor', function() {
 		});
 
 		it('checks the value with the validation function, if any', function() {
-			descriptor.validateCursorValue(value);
+			descriptor.validateCursorValue(value, validationCase);
 
 			expect(validateStub).to.be.calledOnce;
 			expect(validateStub).to.be.calledOn(descriptor);
@@ -199,22 +211,23 @@ describe('ConcreteSortDescriptor', function() {
 		it('skips the validation function, if there is none', function() {
 			delete descriptor.validate;
 
-			descriptor.validateCursorValue(value);
+			descriptor.validateCursorValue(value, validationCase);
 
 			expect(validateStub).to.not.be.called;
 		});
 
 		it('returns the provided value', function() {
-			expect(descriptor.validateCursorValue(value)).to.equal(value);
+			expect(descriptor.validateCursorValue(value, validationCase))
+				.to.equal(value);
 		});
 
 		it('throws without calling validation function, if type check fails', function() {
 			checkCursorValue.returns(false);
 
 			expect(() => {
-				descriptor.validateCursorValue(value);
-			}).to.throw(InvalidCursorError)
-				.that.satisfies((err: InvalidCursorError) => {
+				descriptor.validateCursorValue(value, validationCase);
+			}).to.throw(TestValidationError)
+				.that.satisfies((err: TestValidationError) => {
 					expect(err.shortMessage).to.equal(
 						'Cursor value does not match its column type',
 					);
@@ -229,9 +242,9 @@ describe('ConcreteSortDescriptor', function() {
 			validateStub.returns(false);
 
 			expect(() => {
-				descriptor.validateCursorValue(value);
-			}).to.throw(InvalidCursorError)
-				.that.satisfies((err: InvalidCursorError) => {
+				descriptor.validateCursorValue(value, validationCase);
+			}).to.throw(TestValidationError)
+				.that.satisfies((err: TestValidationError) => {
 					expect(err.shortMessage).to.equal('Invalid cursor value');
 					expect(err.cause).to.be.null;
 					expect(err.info).to.deep.equal({ value });
@@ -244,14 +257,53 @@ describe('ConcreteSortDescriptor', function() {
 			validateStub.returns(msg);
 
 			expect(() => {
-				descriptor.validateCursorValue(value);
-			}).to.throw(InvalidCursorError)
-				.that.satisfies((err: InvalidCursorError) => {
+				descriptor.validateCursorValue(value, validationCase);
+			}).to.throw(TestValidationError)
+				.that.satisfies((err: TestValidationError) => {
 					expect(err.shortMessage).to.equal(msg);
 					expect(err.cause).to.be.null;
 					expect(err.info).to.deep.equal({ value });
 					return true;
 				});
+		});
+	});
+
+	describe('#getCursorValue', function() {
+		const value = 'cursor value';
+		let entity: object;
+		let getPath: sinon.SinonStub;
+		let validateCursorValue: sinon.SinonStub;
+
+		beforeEach(function() {
+			entity = {};
+			getPath = sinon.stub(objectPath, 'get').returns(value);
+			validateCursorValue = sinon.stub(descriptor, 'validateCursorValue')
+				.returnsArg(0);
+		});
+
+		it('gets the cursor value from the value path in an entity', function() {
+			descriptor.getCursorValue(entity);
+
+			expect(getPath).to.be.calledOnce;
+			expect(getPath).to.be.calledWith(
+				sinon.match.same(entity),
+				valuePath,
+			);
+		});
+
+		it('validates the cursor value with the configuration case', function() {
+			descriptor.getCursorValue(entity);
+
+			expect(validateCursorValue).to.be.calledOnce;
+			expect(validateCursorValue).to.be.calledOn(descriptor);
+			expect(validateCursorValue).to.be.calledWith(
+				value,
+				ValidationCase.Configuration,
+			);
+		});
+
+		it('returns the cursor value', function() {
+			expect(descriptor.getCursorValue(entity)).to.equal(value);
 		});
 	});
 
@@ -270,7 +322,10 @@ describe('ConcreteSortDescriptor', function() {
 
 			expect(validateCursorValue).to.be.calledOnce;
 			expect(validateCursorValue).to.be.calledOn(descriptor);
-			expect(validateCursorValue).to.be.calledWith('foo');
+			expect(validateCursorValue).to.be.calledWith(
+				'foo',
+				ValidationCase.Cursor,
+			);
 		});
 
 		it('returns the first element', function() {
