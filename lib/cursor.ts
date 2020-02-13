@@ -7,19 +7,69 @@ import { isArray, isObjectLike, isString } from 'lodash';
 import { InvalidCursorError } from './invalid-cursor-error';
 import { is } from 'nani';
 
+/**
+ * Describes the structure of cursor objects in transit.
+ *
+ * @remarks
+ * Properties here have abbreviated names to avoid wasting network resources.
+ */
 export interface CursorObj {
+	/**
+	 * The Paginator's query name.
+	 */
 	q: string;
+
+	/**
+	 * The Paginator's sort name.
+	 */
 	s: string;
+
+	/**
+	 * The Paginator's args hash, if any.
+	 */
 	a?: string;
+
+	/**
+	 * The cursor values, if any.
+	 */
 	v?: any[];
 }
 
+/**
+ * An internal class which represents a decoded cursor.
+ *
+ * @remarks
+ * This class is responsible for serialization and parsing of cursors, as well
+ * as some initial validation that does not depend on sort configuration.
+ */
 export class Cursor {
+	/**
+	 * The Paginator's query name.
+	 */
 	query: string;
+
+	/**
+	 * The Paginator's sort name.
+	 */
 	sort: string;
+
+	/**
+	 * The cursor's values, if any.
+	 */
 	values?: any[];
+
+	/**
+	 * The Paginator's args args hash, if any.
+	 */
 	argsHash?: string;
 
+	/**
+	 * Creates a Cursor.
+	 * @param query - The query name from the Paginator.
+	 * @param sort - The sort name from the Paginator.
+	 * @param values - The cursor's values, if any.
+	 * @param argsHash - The args hash from the Paginator, if any.
+	 */
 	constructor(
 		query: string,
 		sort: string,
@@ -32,10 +82,26 @@ export class Cursor {
 		this.argsHash = argsHash;
 	}
 
+	/**
+	 * Creates a Cursor from its abbreviated object form.
+	 * @param obj - The abbreviated object form.
+	 * @returns The created Cursor.
+	 */
 	static fromObject(obj: CursorObj): Cursor {
 		return new Cursor(obj.q, obj.s, obj.v, obj.a);
 	}
 
+	/**
+	 * Validates a parsed cursor object, still in its abbreviated form.
+	 *
+	 * @remarks
+	 * This method will throw if the value does not conform to the CursorObj
+	 * interface. It is needed to ensure our cursor typings remain correct at
+	 * runtime.
+	 *
+	 * @param value - The abbreviated object form.
+	 * @returns The unmutated value.
+	 */
 	static validateObject(value: any): CursorObj {
 		if (!isObjectLike(value)) {
 			throw new InvalidCursorError(
@@ -75,6 +141,11 @@ export class Cursor {
 		return value;
 	}
 
+	/**
+	 * Creates a Cursor from a serialized string.
+	 * @param str - The serialized cursor string.
+	 * @returns The created cursor.
+	 */
 	static parse(str: string): Cursor {
 		let obj: unknown;
 		try {
@@ -90,6 +161,11 @@ export class Cursor {
 		return Cursor.fromObject(Cursor.validateObject(obj));
 	}
 
+	/**
+	 * Converts a Cursor into its abbreviated object form, in preparation for
+	 * serialization.
+	 * @returns The abbreviated cursor object.
+	 */
 	toObject(): CursorObj {
 		const obj: CursorObj = { q: this.query, s: this.sort };
 		if (this.argsHash) obj.a = this.argsHash;
@@ -97,6 +173,10 @@ export class Cursor {
 		return obj;
 	}
 
+	/**
+	 * Converts a cursor to a serialized string.
+	 * @returns The serialized cursor string.
+	 */
 	serialize(): string {
 		return encodeObject(this.toObject());
 	}
