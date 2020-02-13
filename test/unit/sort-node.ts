@@ -9,6 +9,7 @@ import { ConfigurationError } from '../../lib/configuration-error';
 import { FakeQuery } from '@batterii/fake-query';
 import { SortDirection } from '../../lib/sort-descriptor';
 import { SortNode } from '../../lib/sort-node';
+import { ValidationCase } from '../../lib/get-error-class';
 import { expect } from 'chai';
 import sinon from 'sinon';
 
@@ -213,7 +214,6 @@ describe('SortNode', function() {
 	describe('#applyCursorValues', function() {
 		const column = 'column name';
 		const operator = 'sort operator';
-		const nextValue = 'next cursor value';
 		let descriptor: sinon.SinonStubbedInstance<ConcreteSortDescriptor>;
 		let node: SortNode;
 		let qry: FakeQuery;
@@ -223,7 +223,7 @@ describe('SortNode', function() {
 			descriptor = sinon.createStubInstance(ConcreteSortDescriptor);
 			descriptor.column = column;
 			descriptor.getOperator.returns(operator);
-			descriptor.getNextCursorValue.returns(nextValue);
+			descriptor.validateCursorValue.returnsArg(0);
 
 			node = new SortNode([ descriptor ]);
 			qry = new FakeQuery();
@@ -238,13 +238,16 @@ describe('SortNode', function() {
 				expect(descriptor.getOperator).to.be.calledOn(descriptor);
 			});
 
-			it('gets the next cursor value using the descriptor', function() {
+			it('validates the first cursor value using the descriptor', function() {
 				node.applyCursorValues(qry.builder, values);
 
-				expect(descriptor.getNextCursorValue).to.be.calledOnce;
-				expect(descriptor.getNextCursorValue)
+				expect(descriptor.validateCursorValue).to.be.calledOnce;
+				expect(descriptor.validateCursorValue)
 					.to.be.calledOn(descriptor);
-				expect(descriptor.getNextCursorValue).to.be.calledWith(values);
+				expect(descriptor.validateCursorValue).to.be.calledWith(
+					'foo',
+					ValidationCase.Cursor,
+				);
 			});
 
 			it('applies an inequality where clause to the query builder', function() {
@@ -256,7 +259,7 @@ describe('SortNode', function() {
 				expect(qry.stubs.where).to.be.calledWith(
 					column,
 					operator,
-					nextValue,
+					'foo',
 				);
 			});
 		});
@@ -275,13 +278,16 @@ describe('SortNode', function() {
 				expect(descriptor.getOperator).to.be.calledOn(descriptor);
 			});
 
-			it('gets the next cursor value using the descriptor', function() {
+			it('validates the first cursor value using the descriptor', function() {
 				node.applyCursorValues(qry.builder, values);
 
-				expect(descriptor.getNextCursorValue).to.be.calledOnce;
-				expect(descriptor.getNextCursorValue)
+				expect(descriptor.validateCursorValue).to.be.calledOnce;
+				expect(descriptor.validateCursorValue)
 					.to.be.calledOn(descriptor);
-				expect(descriptor.getNextCursorValue).to.be.calledWith(values);
+				expect(descriptor.validateCursorValue).to.be.calledWith(
+					'foo',
+					ValidationCase.Cursor,
+				);
 			});
 
 			it('applies a where clause with a callback', function() {
@@ -318,7 +324,7 @@ describe('SortNode', function() {
 					expect(sub0.stubs.where).to.be.calledWith(
 						column,
 						operator,
-						nextValue,
+						'foo',
 					);
 					expect(sub0.stubs.orWhere).to.be.calledOnce;
 					expect(sub0.stubs.orWhere).to.be.calledOn(sub0.builder);
@@ -350,7 +356,7 @@ describe('SortNode', function() {
 						expect(sub1.stubs.where).to.be.calledOnce;
 						expect(sub1.stubs.where).to.be.calledOn(sub1.builder);
 						expect(sub1.stubs.where).to.be.calledWith({
-							[column]: nextValue,
+							[column]: 'foo',
 						});
 						expect(sub1.stubs.andWhere).to.be.calledOnce;
 						expect(sub1.stubs.andWhere)

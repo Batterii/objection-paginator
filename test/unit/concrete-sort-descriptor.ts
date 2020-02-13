@@ -306,30 +306,4 @@ describe('ConcreteSortDescriptor', function() {
 			expect(descriptor.getCursorValue(entity)).to.equal(value);
 		});
 	});
-
-	describe('#getNextCursorValue', function() {
-		let values: any[];
-		let validateCursorValue: sinon.SinonStub;
-
-		beforeEach(function() {
-			values = [ 'foo', 'bar' ];
-			validateCursorValue = sinon.stub(descriptor, 'validateCursorValue')
-				.returnsArg(0);
-		});
-
-		it('validates the first element of the provided values', function() {
-			descriptor.getNextCursorValue(values);
-
-			expect(validateCursorValue).to.be.calledOnce;
-			expect(validateCursorValue).to.be.calledOn(descriptor);
-			expect(validateCursorValue).to.be.calledWith(
-				'foo',
-				ValidationCase.Cursor,
-			);
-		});
-
-		it('returns the first element', function() {
-			expect(descriptor.getNextCursorValue(values)).to.equal('foo');
-		});
-	});
 });

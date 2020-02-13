@@ -1,6 +1,7 @@
 import { Model, OrderByDescriptor, QueryBuilder } from 'objection';
 import { ConcreteSortDescriptor } from './concrete-sort-descriptor';
 import { ConfigurationError } from './configuration-error';
+import { ValidationCase } from './get-error-class';
 import { isEmpty } from 'lodash';
 
 export class SortNode {
@@ -51,7 +52,10 @@ export class SortNode {
 		// Get column name, inequality operator, and next cursor value.
 		const { column } = descriptor;
 		const operator = descriptor.getOperator();
-		const value = descriptor.getNextCursorValue(values);
+		const [ value ] = values;
+
+		// Validate the cursor value.
+		descriptor.validateCursorValue(value, ValidationCase.Cursor);
 
 		if (child) {
 			// Handle the child recursively.

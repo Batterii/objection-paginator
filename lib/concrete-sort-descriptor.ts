@@ -84,8 +84,4 @@ export class ConcreteSortDescriptor {
 			ValidationCase.Configuration,
 		);
 	}
-
-	getNextCursorValue(values: any[]): any {
-		return this.validateCursorValue(values[0], ValidationCase.Cursor);
-	}
 }
