@@ -87,7 +87,7 @@ export class ConcreteSortDescriptor {
 		switch (this.columnType) {
 			case ColumnType.String:
 				return isString(value);
-			case ColumnType.Int:
+			case ColumnType.Integer:
 				return isInteger(value);
 			case ColumnType.Float:
 				return isFinite(value);

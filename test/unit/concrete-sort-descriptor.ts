@@ -142,7 +142,7 @@ describe('ConcreteSortDescriptor', function() {
 		});
 
 		it('checks the value with isString, if columnType is int', function() {
-			descriptor.columnType = ColumnType.Int;
+			descriptor.columnType = ColumnType.Integer;
 
 			expect(descriptor.checkCursorValue(value))
 				.to.equal(isIntegerResult);

@@ -347,7 +347,7 @@ describe('Paginator (Integration)', function() {
 			);
 			expect(err.cause).to.be.null;
 			expect(err.info).to.deep.equal({
-				columnType: ColumnType.Int,
+				columnType: ColumnType.Integer,
 				value: 4.2,
 			});
 		}

@@ -14,7 +14,7 @@ export class UserQuery extends Paginator<User> {
 			},
 			'firstName',
 			'lastName',
-			{ column: 'id', columnType: ColumnType.Int },
+			{ column: 'id', columnType: ColumnType.Integer },
 		],
 		reverse: [
 			{
@@ -32,7 +32,7 @@ export class UserQuery extends Paginator<User> {
 			{ column: 'lastName', direction: SortDirection.Descending },
 			{
 				column: 'id',
-				columnType: ColumnType.Int,
+				columnType: ColumnType.Integer,
 				direction: SortDirection.Descending,
 			},
 		],

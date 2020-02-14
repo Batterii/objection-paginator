@@ -23,7 +23,7 @@ export class MemberQuery extends Paginator<User, MemberQueryArgs> {
 			'lastName',
 			{
 				column: 'users.id',
-				columnType: ColumnType.Int,
+				columnType: ColumnType.Integer,
 				valuePath: 'id',
 			},
 		],

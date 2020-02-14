@@ -25,8 +25,7 @@ export enum ColumnType {
 	/**
 	 * Indicates an integer column.
 	 */
-	// TODO: Rename to Integer and 'integer' to match Knex.
-	Int = 'int',
+	Integer = 'integer',
 
 	/**
 	 * Indicates a float column.
