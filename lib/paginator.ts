@@ -138,8 +138,8 @@ interface PaginatorConstructor<TModel extends Model, TArgs = undefined> {
  *
  * ```
  *
- * For more examples, see the README and test/lib directory of this module's
- * GitHub repo.
+ * For more examples, see the README and the `test/lib` directory of this
+ * module's GitHub repo.
  */
 export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	/**
@@ -211,8 +211,11 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 * The args provided to the instance, if any.
 	 *
 	 * @remarks
-	 * For optimization purposes, this property is read-only. If you need to
-	 * change the args, simply create another instance.
+	 * For optimization purposes, this property is also read-only, but its
+	 * properties are *not* frozen. If you change properties that aren't ignored
+	 * by the args hash, however, you will cause an invalid cursor error for any
+	 * pending executions. Therefore, if you *do* need to change the args, you
+	 * should create another instance with different args.
 	 */
 	readonly args: TArgs;
 
@@ -232,7 +235,6 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 		Object.defineProperties(this, {
 			limit: { value: limit || 1000, enumerable: true },
 			sort: { value: sort || 'default', enumerable: true },
-			// TODO: Consider copying and freezing args.
 			args: { value: rest[0], enumerable: true },
 		});
 	}
