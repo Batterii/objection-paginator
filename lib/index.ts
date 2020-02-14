@@ -1,7 +1,9 @@
 export {
 	GetPageOptions,
+	If,
 	Page,
 	Paginator,
+	PaginatorConstructor,
 	PaginatorOptions,
 } from './paginator';
 export {

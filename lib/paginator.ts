@@ -56,14 +56,23 @@ export interface Page<T extends Model> {
 
 /**
  * A tuple that includes an item of type T if and only if T is not undefined.
+ *
+ * @remarks
+ * This is used in the constructor and getPage type signatures in order to make
+ * the TArgs type argument fully optional. You may need it if you intend to
+ * override either of these.
  */
-type If<T> = T extends undefined ? [] : [T];
+export type If<T> = T extends undefined ? [] : [T];
 
 /**
- * Used as a workaround to bind generic type arguments to static members, which
- * is otherwise not possible in TypeScript.
+ * A generic interface that must be implemented by all Paginator constructors.
+ *
+ * @remarks
+ * This is used as a workaround to bind generic types to the static getPage
+ * method, which is otherwise not possible in TypeScript. You may need it if you
+ * intend to override this method.
  */
-interface PaginatorConstructor<TModel extends Model, TArgs = undefined> {
+export interface PaginatorConstructor<TModel extends Model, TArgs = undefined> {
 	new (
 		options?: PaginatorOptions,
 		...rest: If<TArgs>
