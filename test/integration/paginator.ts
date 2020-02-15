@@ -230,11 +230,10 @@ describe('Paginator (Integration)', function() {
 		expect(page.remaining).to.equal(0);
 	});
 
-	it('checks cursor query names, sort names, and args hash', async function() {
+	it('checks cursor query names and sort sort names', async function() {
 		const userQuery = new UserQuery();
 		const memberQuery = new MemberQuery({}, { projectId: 1 });
 		const reverseUserQuery = new UserQuery({ sort: 'reverse' });
-		const otherMemberQuery = new MemberQuery({}, { projectId: 2 });
 
 		// Get a cursor for a default user query.
 		const { cursor: userCursor } = await userQuery.execute();
@@ -270,45 +269,6 @@ describe('Paginator (Integration)', function() {
 				expectedSort: 'reverse',
 			});
 		}
-
-		// Get a cursor for the member query in project 1.
-		const { cursor: memberCursor } = await memberQuery.execute();
-
-		// Send it to the member query for project 2 and make sure it fails.
-		try {
-			await otherMemberQuery.execute(memberCursor);
-			expect.fail('Promise should have rejected');
-		} catch (err) {
-			if (!is(err, InvalidCursorError)) throw err;
-			expect(err.shortMessage).to.equal('Args hash mismatch');
-			expect(err.cause).to.be.null;
-			expect(err.info).to.deep.equal({
-				expectedArgs: { projectId: 2 },
-			});
-		}
-	});
-
-	it('allows varible args if specified with varyArgs', async function() {
-		const options = { limit: 2 };
-		const qry = new MemberQuery(options, { projectId: 1, ctx: 'foo' });
-		const other = new MemberQuery(options, { projectId: 1, ctx: 'bar' });
-		let items: User[];
-		let remaining: number;
-		let cursor: string;
-
-		// Get the first page with one paginator.
-		({ items, remaining, cursor } = await qry.execute());
-		expect(items).to.have.length(2);
-		expect(items[0].name).to.equal('Terd Ferguson');
-		expect(items[1].name).to.equal('Cool Guy');
-		expect(remaining).to.equal(3);
-
-		// Get the next one with the other, to ensure varying arg is allowed.
-		({ items, remaining, cursor } = await other.execute(cursor));
-		expect(items).to.have.length(2);
-		expect(items[0].name).to.equal('Dude Bro');
-		expect(items[1].name).to.equal('Steve Ripberger');
-		expect(remaining).to.equal(1);
 	});
 
 	it('validates cursor values against column types', async function() {

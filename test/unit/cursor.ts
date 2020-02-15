@@ -11,13 +11,12 @@ const { InvalidJsonError } = encodeObjectModule;
 describe('Cursor', function() {
 	const query = 'some query name';
 	const sort = 'some sort name';
-	const argsHash = 'some args hash';
 	let values: any[];
 	let cursor: Cursor;
 
 	beforeEach(function() {
 		values = [ 'foo', 'bar' ];
-		cursor = new Cursor(query, sort, values, argsHash);
+		cursor = new Cursor(query, sort, values);
 	});
 
 	it('stores the provided query name', function() {
@@ -32,32 +31,17 @@ describe('Cursor', function() {
 		expect(cursor.values).to.equal(values);
 	});
 
-	it('stores the provided args hash', function() {
-		expect(cursor.argsHash).to.equal(argsHash);
-	});
-
 	it('supports omitted values', function() {
 		cursor = new Cursor(query, sort);
 
 		expect(cursor.values).to.be.undefined;
 	});
 
-	it('supports omitted args hash', function() {
-		cursor = new Cursor(query, sort, values);
-
-		expect(cursor.argsHash).to.be.undefined;
-	});
-
 	describe('::fromObject', function() {
 		let result: Cursor;
 
 		beforeEach(function() {
-			result = Cursor.fromObject({
-				q: query,
-				s: sort,
-				a: argsHash,
-				v: values,
-			});
+			result = Cursor.fromObject({ q: query, s: sort, v: values });
 		});
 
 		it('returns a cursor', function() {
@@ -76,20 +60,10 @@ describe('Cursor', function() {
 			expect(result.values).to.equal(values);
 		});
 
-		it('uses \'a\' property as args hash', function() {
-			expect(result.argsHash).to.equal(argsHash);
-		});
-
 		it('supports omitted \'v\' property', function() {
-			result = Cursor.fromObject({ q: query, s: sort, a: argsHash });
+			result = Cursor.fromObject({ q: query, s: sort });
 
 			expect(result.values).to.be.undefined;
-		});
-
-		it('supports omitted \'a\' property', function() {
-			result = Cursor.fromObject({ q: query, s: sort, v: values });
-
-			expect(result.argsHash).to.be.undefined;
 		});
 	});
 
@@ -104,7 +78,7 @@ describe('Cursor', function() {
 			valueAccess = sinon.stub()
 				.callsFake((obj: any, prop: string|number) => obj[prop]);
 			value = new Proxy(
-				{ q: query, s: sort, v: values, a: argsHash },
+				{ q: query, s: sort, v: values },
 				{ get: valueAccess },
 			);
 			isObjectLike = sinon.stub(_, 'isObjectLike').returns(true);
@@ -119,13 +93,12 @@ describe('Cursor', function() {
 			expect(isObjectLike).to.be.calledWith(sinon.match.same(value));
 		});
 
-		it('checks if the q, s, and a properties are strings', function() {
+		it('checks if the q, s, and properties are strings', function() {
 			Cursor.validateObject(value);
 
-			expect(isString).to.be.calledThrice;
+			expect(isString).to.be.calledTwice;
 			expect(isString).to.be.calledWith(query);
 			expect(isString).to.be.calledWith(sort);
-			expect(isString).to.be.calledWith(argsHash);
 		});
 
 		it('checks if v property is an array', function() {
@@ -188,22 +161,6 @@ describe('Cursor', function() {
 				});
 		});
 
-		it('throws if a property is not a string', function() {
-			isString.withArgs(argsHash).returns(false);
-
-			expect(() => {
-				Cursor.validateObject(value);
-			}).to.throw(InvalidCursorError)
-				.that.satisfies((err: InvalidCursorError) => {
-					expect(err.shortMessage).to.equal(
-						'Cursor \'a\' is not a string',
-					);
-					expect(err.cause).to.be.null;
-					expect(err.info).to.deep.equal({ a: argsHash });
-					return true;
-				});
-		});
-
 		it('throws if v property is not an array', function() {
 			isArray.returns(false);
 
@@ -218,16 +175,6 @@ describe('Cursor', function() {
 					expect(err.info).to.deep.equal({ v: values });
 					return true;
 				});
-		});
-
-
-		it('supports omitted a property', function() {
-			delete value.a;
-
-			const result = Cursor.validateObject(value);
-
-			expect(isString).to.be.calledTwice;
-			expect(result).to.equal(value);
 		});
 
 		it('supports omitted v property', function() {
@@ -337,19 +284,6 @@ describe('Cursor', function() {
 			const result = cursor.toObject();
 
 			expect(result).to.be.an.instanceOf(Object);
-			expect(result).to.have.keys([ 'q', 's', 'a', 'v' ]);
-			expect(result.q).to.equal(query);
-			expect(result.s).to.equal(sort);
-			expect(result.a).to.equal(argsHash);
-			expect(result.v).to.equal(values);
-		});
-
-		it('omits a key if there is no args hash', function() {
-			delete cursor.argsHash;
-
-			const result = cursor.toObject();
-
-			expect(result).to.be.an.instanceOf(Object);
 			expect(result).to.have.keys([ 'q', 's', 'v' ]);
 			expect(result.q).to.equal(query);
 			expect(result.s).to.equal(sort);
@@ -362,10 +296,9 @@ describe('Cursor', function() {
 			const result = cursor.toObject();
 
 			expect(result).to.be.an.instanceOf(Object);
-			expect(result).to.have.keys([ 'q', 's', 'a' ]);
+			expect(result).to.have.keys([ 'q', 's' ]);
 			expect(result.q).to.equal(query);
 			expect(result.s).to.equal(sort);
-			expect(result.a).to.equal(argsHash);
 		});
 	});
 

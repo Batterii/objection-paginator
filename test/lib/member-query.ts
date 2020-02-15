@@ -29,8 +29,6 @@ export class MemberQuery extends Paginator<User, MemberQueryArgs> {
 		],
 	};
 
-	static varyArgs = [ 'ctx' ];
-
 	getBaseQuery(): QueryBuilder<User> {
 		return User.query()
 			.withGraphJoined('memberships', { joinOperation: 'innerJoin' })

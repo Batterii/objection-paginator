@@ -25,11 +25,6 @@ export interface CursorObj {
 	s: string;
 
 	/**
-	 * The Paginator's args hash, if any.
-	 */
-	a?: string;
-
-	/**
 	 * The cursor values, if any.
 	 */
 	v?: any[];
@@ -59,27 +54,15 @@ export class Cursor {
 	values?: any[];
 
 	/**
-	 * The Paginator's args args hash, if any.
-	 */
-	argsHash?: string;
-
-	/**
 	 * Creates a Cursor.
 	 * @param query - The query name from the Paginator.
 	 * @param sort - The sort name from the Paginator.
 	 * @param values - The cursor's values, if any.
-	 * @param argsHash - The args hash from the Paginator, if any.
 	 */
-	constructor(
-		query: string,
-		sort: string,
-		values?: any[],
-		argsHash?: string,
-	) {
+	constructor(query: string, sort: string, values?: any[]) {
 		this.query = query;
 		this.sort = sort;
 		this.values = values;
-		this.argsHash = argsHash;
 	}
 
 	/**
@@ -88,7 +71,7 @@ export class Cursor {
 	 * @returns The created Cursor.
 	 */
 	static fromObject(obj: CursorObj): Cursor {
-		return new Cursor(obj.q, obj.s, obj.v, obj.a);
+		return new Cursor(obj.q, obj.s, obj.v);
 	}
 
 	/**
@@ -121,13 +104,6 @@ export class Cursor {
 			throw new InvalidCursorError(
 				'Cursor \'s\' is not a string',
 				{ info: { s: value.s } },
-			);
-		}
-
-		if (value.a !== undefined && !isString(value.a)) {
-			throw new InvalidCursorError(
-				'Cursor \'a\' is not a string',
-				{ info: { a: value.a } },
 			);
 		}
 
@@ -168,7 +144,6 @@ export class Cursor {
 	 */
 	toObject(): CursorObj {
 		const obj: CursorObj = { q: this.query, s: this.sort };
-		if (this.argsHash) obj.a = this.argsHash;
 		if (this.values) obj.v = this.values;
 		return obj;
 	}

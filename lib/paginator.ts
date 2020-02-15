@@ -1,12 +1,11 @@
 import { Model, QueryBuilder } from 'objection';
-import { isEmpty, isObject, last, mapValues, omit } from 'lodash';
+import { last, mapValues } from 'lodash';
 import { Cursor } from './cursor';
 import { InvalidCursorError } from './invalid-cursor-error';
 import { SortDescriptor } from './sort-descriptor';
 import { SortNode } from './sort-node';
 import { UnknownSortError } from './unknown-sort-error';
 import { createSortNode } from './create-sort-node';
-import { MD5 as md5 } from 'object-hash';
 
 /**
  * Paginator instance configuration.
@@ -180,20 +179,6 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	static queryName?: string;
 
 	/**
-	 * Specifies Paginator args which can vary from one page to the next.
-	 *
-	 * @remarks
-	 * When cursors are created in a Paginator subtype with arguments, those
-	 * arguments are hashed and stored in the cursor. This hash is checked on
-	 * cursor consumption, again to ensure that cursors from completely
-	 * unrelated queries aren't being sent in by clients.
-	 *
-	 * Sometimes, however, you might have arguments that you don't want to put
-	 * into an args hash.
-	 */
-	static varyArgs?: string[];
-
-	/**
 	 * Cached sort nodes, created within each subtype the first time it is used.
 	 */
 	private static _sortNodes?: Record<string, SortNode|undefined>;
@@ -218,15 +203,8 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 
 	/**
 	 * The args provided to the instance, if any.
-	 *
-	 * @remarks
-	 * For optimization purposes, this property is also read-only, but its
-	 * properties are *not* frozen. If you change properties that aren't ignored
-	 * by the args hash, however, you will cause an invalid cursor error for any
-	 * pending executions. Therefore, if you *do* need to change the args, you
-	 * should create another instance with different args.
 	 */
-	readonly args: TArgs;
+	args: TArgs;
 
 	/**
 	 * Creates a Paginator.
@@ -244,7 +222,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 		Object.defineProperties(this, {
 			limit: { value: limit || 1000, enumerable: true },
 			sort: { value: sort || 'default', enumerable: true },
-			args: { value: rest[0], enumerable: true },
+			args: { value: rest[0], enumerable: true, writable: true },
 		});
 	}
 
@@ -368,29 +346,6 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	}
 
 	/**
-	 * Calculates the args hash for the paginator's args, if any.
-	 *
-	 * @remarks
-	 * This uses MD5 because we don't really care about security in this case.
-	 * We just want to detect when a cursor was made for a query with different
-	 * arguments.
-	 *
-	 * This is currently called twice in many instances: once when the original
-	 * cursor is recieved and validated, and again when the next cursor is
-	 * created. We could cache this on the instance, but I didn't bother for now
-	 * since it seemed like a micro-optimization.
-	 *
-	 * @returns The calculated hash.
-	 */
-	private _getArgsHash(): string|undefined {
-		let args = this.args as any;
-		if (args === undefined) return;
-		const { varyArgs } = this._cls;
-		if (varyArgs && isObject(args)) args = omit(args, varyArgs);
-		if (!isEmpty(args)) return md5(args);
-	}
-
-	/**
 	 * Creates a cursor for this subtype.
 	 *
 	 * @remarks
@@ -412,7 +367,6 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 			this._cls._getQueryName(),
 			this.sort,
 			item && this._getSortNode().getCursorValues(item),
-			this._getArgsHash(),
 		);
 	}
 
@@ -433,9 +387,9 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 * Validates a cursor object against the paginator instance.
 	 *
 	 * @remarks
-	 * This method is responsible for checking the query name, sort name, and
-	 * args hash of any consumed cursor. It will throw an InvalidCursorError if
-	 * any problems are found.
+	 * This method is responsible for checking the query name and sort name of
+	 * the provided cursor. It will throw an InvalidCursorError if any problems
+	 * are found.
 	 *
 	 * @param cursor - The unmutated cursor object.
 	 */
@@ -460,13 +414,6 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 					expectedSort: this.sort,
 				},
 			});
-		}
-
-		if (cursor.argsHash !== this._getArgsHash()) {
-			throw new InvalidCursorError(
-				'Args hash mismatch',
-				{ info: { expectedArgs: this.args } },
-			);
 		}
 
 		return cursor;

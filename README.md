@@ -398,29 +398,24 @@ Of course, if you are using vanilla JS you can skip defining your types and just
 provide the args object as the second constructor or getPage argument, if and
 when you need it.
 
-Arguments introduce some additional considerations for cursor validation. A
-cursor for people named 'Steve' probably shouldn't be used for a query across
-someone with a different name, since we assumed that the user was named 'Steve'
-when we made it. Granted, it isn't a security risk, but if a client mistakenly
-does this, we should try to detect it and inform them instead of producing
-potentially unpredictable behavior or a confusing error message.
+Args introduce some additional considerations for your cursors. A cursor
+from the same Paginator and sort name, but with different args, is technically
+still valid since it won't cause database errors. It will not, however, produce
+the results you probably want. You may end up getting strange results, or
+completely empty results.
 
-A Paginator instance therefore creates an MD5 hash of your arguments and stores
-them in its cursors. It checks these hashes when cursors are consumed in order
-to detect these kinds of problems.
+Clients should therefore take care not to change the arguments they're sending
+while also sending cursors from previous requests. An earlier version of this
+library attempted to store a hash of arg values within cursors themselves, so
+the server could detect this situation and throw an appropriate error, but since
+args are so flexible this proved to be more trouble than it was worth.
 
 
-### Varying Arguments
-Sometimes you might have some argumens that aren't really important to the
-validity of your queries. For example, if you're using an API framework like
-[Koa][9], you might want to pass the `ctx` object to your paginators, so that
-you can do permissions checks and what not based on the currently logged-in
-user.
-
-Of course, you wouldn't want to hash this object because it will be massive and
-potentially different for every request. What you can do in this situation is
-simply specify any properties you need the hash to ignore in the static
-`varyArgs` property, like so:
+### Getting Creative With Your Args
+Args have a lot of flexibility besides just applying filters to your queries.
+If you're using an API framework like [Koa][9], you might want to pass the
+`ctx` object to your paginators, so that you can do permissions checks and what
+not based on the currently logged-in user.
 
 ```ts
 import { ColumnType, Page, Paginator } from '@batterii/objection-paginator';
@@ -433,9 +428,6 @@ interface PeopleArgs {
 }
 
 export class People extends Paginator<Person, PeopleArgs> {
-	// Set this so we don't hash our ctx objects.
-	static varyArgs = [ 'ctx' ];
-
 	// Set up our default sort as normal.
 	static sorts = {
 		default: [
@@ -546,9 +538,6 @@ export abstract class MyPaginator<
 	TModel extends Model,
 	TArgs extends MyPaginatorArgs = PaginatorArgs
 > extends Paginator<TModel, TArgs> {
-	// Again, let's ignore our ctx object when making hashes.
-	static varyArgs = [ 'ctx' ];
-
 	/*
 	 * This is the same implementation as before, just with a generic type
 	 * signature. We do need to use this spread operator and If<T> type to get
