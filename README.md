@@ -336,18 +336,36 @@ export class PeopleWithFavoriteFoods extends Paginator<Person> {
 		return Person.query().withGraphJoined('favoriteFood', {
 			/*
 			 * We are doing an inner join here to filter out people who don't
-			 * have a known favorite food. At the moment nullable columns are
-			 * not supported by the cursor validation, so we can't have null
-			 * favorite foods in the result set.
-			 *
-			 * A future release will likely add support for nullable cursor
-			 * values.
+			 * have a known favorite food. Nullable columns are not currently
+			 * supported. See the section on nullable columns below.
 			 */
 			joinOperation: 'innerJoin',
 		});
 	}
 }
 ```
+
+## Regarding Nullable Columns
+Sorting by nullable columns is not currently supported by this library, largely
+because [NULL cannot simply be placed into an inequality filter][11] the way
+other values can. Objection does support `whereNull` and `whereNotNull` query
+builder methods for doing filtering, so it is certainly possible, but I'm not
+going to bother until I know someone needs it.
+
+The SQL standard also does not specify how NULL values should be sorted, so
+whether they appear at the beginning or end of a given sort varies based on
+which implementation you're using. Postgres puts them at the end of an
+ascending sort, while SQLite puts them at the beginning, for example.
+
+Meanwhile, including IS NULL or IS NOT NULL in an ORDER BY is *not* supported by
+either Objection or Knex, so the entire ORDER BY expression for a sort with a
+nullable column in it would have to be constructed by concatenating raw sql
+strings.
+
+If anybody has any good ideas on a robust way to handle these problems while
+preserving the abstraction this library offers, feel free to contribute. I may
+come back to it when I have time.
+
 
 ## Paginator Arguments
 In many cases, you may need to pass in information which is not known when
@@ -590,3 +608,4 @@ easily-checked heirarchy. The errors it exposes are:
 [8]: https://vincit.github.io/objection.js/api/query-builder/eager-methods.html#withgraphjoined
 [9]: https://koajs.com/
 [10]: https://www.npmjs.com/package/nani
+[11]: https://www.xaprb.com/blog/2006/05/18/why-null-never-compares-false-to-anything-in-sql/
