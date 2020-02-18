@@ -1,4 +1,5 @@
 import { Model, Pojo } from 'objection';
+import { Food } from './food';
 import { Membership } from './membership';
 
 export enum UserRole {
@@ -17,6 +18,14 @@ export class User extends Model {
 				to: 'memberships.userId',
 			},
 		},
+		favoriteFood: {
+			relation: Model.HasOneRelation,
+			modelClass: Food,
+			join: {
+				from: 'users.favoriteFoodId',
+				to: 'foods.id',
+			},
+		},
 	};
 
 	id: number;
@@ -25,8 +34,10 @@ export class User extends Model {
 	role: string;
 	suspended: boolean;
 	score: number;
+	favoriteFoodId: number|null;
 
 	memberships?: Membership[];
+	favoriteFood?: Food|null;
 
 	get name(): string {
 		return `${this.firstName} ${this.lastName}`;

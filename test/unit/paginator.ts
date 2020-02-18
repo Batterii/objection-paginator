@@ -304,7 +304,7 @@ describe('Paginator', function() {
 		it('executes the query builder with no further modification', async function() {
 			await paginator.execute(cursor);
 
-			expect(qry.stubNames).to.deep.equal([]);
+			expect(qry.stubNames).to.be.empty;
 		});
 
 		it('gets the remaining count, using the builder and item count', async function() {
@@ -350,7 +350,7 @@ describe('Paginator', function() {
 				expect(createCursorString).to.not.be.called;
 				expect(result).to.be.an.instanceOf(Object);
 				expect(result).to.have.keys([ 'items', 'remaining', 'cursor' ]);
-				expect(result.items).to.deep.equal([]);
+				expect(result.items).to.be.empty;
 				expect(result.remaining).to.equal(0);
 				expect(result.cursor).to.equal(cursor);
 			});
@@ -366,7 +366,7 @@ describe('Paginator', function() {
 				expect(createCursorString).to.be.calledWithExactly();
 				expect(result).to.be.an.instanceOf(Object);
 				expect(result).to.have.keys([ 'items', 'remaining', 'cursor' ]);
-				expect(result.items).to.deep.equal([]);
+				expect(result.items).to.be.empty;
 				expect(result.remaining).to.equal(0);
 				expect(result.cursor).to.equal(blankCursor);
 			});
@@ -803,7 +803,7 @@ describe('Paginator', function() {
 				41,
 			);
 
-			expect(qry.stubNames).to.deep.equal([]);
+			expect(qry.stubNames).to.be.empty;
 			expect(qry.builder.then).to.not.be.called;
 			expect(result).to.equal(0);
 		});

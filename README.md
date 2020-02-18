@@ -1,6 +1,7 @@
 # @batterii/objection-paginator
 Object-oriented, value-based pagination for [Objection.js][1].
 
+
 ## Rationale
 Objection includes some [query builder methods for pagination][2], but these
 are implemented using a simple limit and offset, which comes with certain
@@ -23,9 +24,19 @@ but it is a common need and should probably be implemented somewhere.
 
 For Objection, it is implemented in a few different packages on npm, including
 [objection-cursor][4] and [objection-keyset-pagination][5]. This functionality
-is absolutely crucial to Batterii, however, so we've opted to develop it
-ourselves under extensive unit tests with TypeScript, so we know that we can
-rely on it and will have full control over the api and features.
+is absolutely crucial to Batterii, however, so we've opted to implement it
+ourselves to ensure reliability and control over features.
+
+Unlike these other libraries in this space, this project is designed with strong
+adherance to OOP priciples and has 100% unit test coverage, along with an
+extensive suite of integration tests implemented against SQLite. It is also
+written in TypeScript, and includes exhaustive documentation comments for easy
+perusal using vscode.
+
+It also has robust support for easily specifying various sorting and filtering
+methods around the pagination abstraction, including nullable columns and
+columns loaded in through relationships. See below for a lengthy explanation of
+these features.
 
 
 ## The Paginator Class
@@ -249,7 +260,7 @@ loading related data using methods like [withGraphFetched][7] and
 [withGraphJoined][8]. When using the latter of these methods, it is possible to
 also sort on the joined columns within your Paginator.
 
-To do this, you will need to give your sort descriptors a `valuePath`, which is
+To do this, you may need to give your sort descriptors a `valuePath`, which is
 the dot-separated object path at which they can find their cursor values within
 your denormalized result objects. You also may need to specify table names in
 addition to column names, if you are joining in a table that has some shared
@@ -257,7 +268,7 @@ column names.
 
 The `valuePath` is actually always present, but it defaults to whatever you
 provide as the column name. If you need to specify a full `table.column`
-specifier, you will almost certainly have to update the `valuePath` as well.
+specifier, you will very likely have to update the `valuePath` as well.
 
 If, for example, I have a Food model where each food has a unique integer id,
 and I keep track of people's favorite foods using a `favoriteFoodId` column,
@@ -283,8 +294,8 @@ export class Person extends Model {
 	id: number;
 	firstName: string;
 	lastName: string;
-	favoriteFoodId?: number;
-	favoriteFood?: User;
+	favoriteFoodId: number|null;
+	favoriteFood?: Food|null;
 }
 
 ```
@@ -294,8 +305,6 @@ by the name of the food, the person's first name, the person's last name, and
 finally the person id:
 
 ```ts
-import { Person } from 'objection';
-
 import {
 	ColumnType,
 	Paginator,
@@ -307,23 +316,25 @@ import { QueryBuilder } from 'objection';
 export class PeopleWithFavoriteFoods extends Paginator<Person> {
 	static sorts = {
 		default: [
-			{
-				/*
-				 * The column we're sorting by is the `name` column in the
-				 * `foods` table, but as results come in the Food entities
-				 * will be assigned on to the `favoriteFood` properties of our
-				 * Person entities. We can get the food names for cursors
-				 * from there.
-				 */
-				column: 'foods.name',
-				valuePath: 'favoriteFood.name',
-			}
+			/*
+			 * The column we're sorting by is the `name` column in the `foods`
+			 * table. Note that Objection uses the relationship name as a table
+			 * alias for the joined 'foods' table, so you should refer to it
+			 * with that alias, if needed.
+			 *
+			 * This has the added benefit of matching our valuePath exactly,
+			 * removing the need to specify both.
+			 */
+			'favoriteFood.name',
 			'firstName',
 			'lastName',
 			{
 				/*
 				 * We need to specify which id we're talking about here, since
 				 * the `foods` table has its own id column.
+				 *
+				 * This means we also have to specify the value path, since it
+				 * no longer matches the column identifier.
 				 */
 				column: 'people.id',
 				columnType: ColumnType.Integer,
@@ -336,8 +347,9 @@ export class PeopleWithFavoriteFoods extends Paginator<Person> {
 		return Person.query().withGraphJoined('favoriteFood', {
 			/*
 			 * We are doing an inner join here to filter out people who don't
-			 * have a known favorite food. Nullable columns are not currently
-			 * supported. See the section on nullable columns below.
+			 * have a known favorite food. If you need to include records with
+			 * nullable columns or relationships, see the section on nullable
+			 * columns below.
 			 */
 			joinOperation: 'innerJoin',
 		});
@@ -345,26 +357,173 @@ export class PeopleWithFavoriteFoods extends Paginator<Person> {
 }
 ```
 
-## Regarding Nullable Columns
-Sorting by nullable columns is not currently supported by this library, largely
-because [NULL cannot simply be placed into an inequality filter][11] the way
-other values can. Objection does support `whereNull` and `whereNotNull` query
-builder methods for doing filtering, so it is certainly possible, but I'm not
-going to bother until I know someone needs it.
+## Nullable Columns
+If your sort specifies a column that might be null for a given record, you need
+to explicitly mark this using the `nullable` option. This will allow nulls
+through the cursor validators, and also ensure they are handled properly within
+ORDER BY and WHERE clauses applied by the paginator.
 
-The SQL standard also does not specify how NULL values should be sorted, so
-whether they appear at the beginning or end of a given sort varies based on
-which implementation you're using. Postgres puts them at the end of an
-ascending sort, while SQLite puts them at the beginning, for example.
+If, for example, we have a `height` field in our Person model, but we may or may
+not now the height of an individual person. We can account for this by adding
+a `nullable: true` to our sort descriptor for the height field:
 
-Meanwhile, including IS NULL or IS NOT NULL in an ORDER BY is *not* supported by
-either Objection or Knex, so the entire ORDER BY expression for a sort with a
-nullable column in it would have to be constructed by concatenating raw sql
-strings.
+```ts
+import {
+	ColumnType,
+	Paginator,
+	SortDirection,
+} from '@batterii/objection-paginator';
+import { Person } from '../models/person';
+import { QueryBuilder } from 'objection';
 
-If anybody has any good ideas on a robust way to handle these problems while
-preserving the abstraction this library offers, feel free to contribute. I may
-come back to it when I have time.
+export class People extends Paginator<Person> {
+	static sorts = {
+		default: [
+			'firstName',
+			'lastName',
+			{ column: 'id', columnType: ColumnType.Integer },
+		],
+		shortestFirst: [
+			{
+				column: 'height',
+				columnType: ColumnType.Float,
+				nullable: true,
+			}
+			'firstName',
+			'lastName',
+			{ column: 'id', columnType: ColumnType.Integer },
+		],
+	};
+
+	getBaseQuery(): QueryBuilder<User> {
+		return Person.query();
+	}
+}
+```
+
+This library explicitly specifies how to sort nulls, so regardless of what
+database you are using, nulls will occur *last* in an ascending sort, so all the
+people whose height we don't know will end up an the end of this query.
+
+Coversely, nulls will occur *first* in a *descending* sort. A feature will be
+added in a future release, however, which will allow you to specify a
+'nulls last' descending sort, if you need it.
+
+### Nullable Relationships
+Nullable column support works even if the referenced column is from a different
+table. If we return to our previous `PeopleWithFavoriteFoods` example, we can
+include people with unknown favorite foods at the end of our list like so:
+
+```ts
+import {
+	ColumnType,
+	Paginator,
+	SortDirection,
+} from '@batterii/objection-paginator';
+import { Person } from '../models/person';
+import { QueryBuilder } from 'objection';
+
+export class PeopleWithFavoriteFoods extends Paginator<Person> {
+	static sorts = {
+		default: [
+			{
+				column: 'favoriteFood.name',
+				nullable: true,
+			}
+			'firstName',
+			'lastName',
+			{
+				column: 'people.id',
+				columnType: ColumnType.Integer,
+				valuePath: 'id',
+			},
+		],
+	};
+
+	getBaseQuery(): QueryBuilder<User> {
+		/*
+		 * The join operation for `withGraphJoined` defaults to a left join, so
+		 * there is no need to specify. The favoriteFood for each person will be
+		 * loaded if known, and null if not known.
+		 */
+		return Person.query().withGraphJoined('favoriteFood');
+	}
+}
+```
+
+### Regarding Identifier Mappers
+It is common, when using Objection, to also use some kind of mapping mechanism
+to translate identifiers between database-idioms and JavaScript idioms, as
+described [here][12]. Normally, this will work perfectly fine when defining your
+Paginator sorts, but *if* you specify a nullable column within a sort? These
+mappings will no longer function within that sort.
+
+The reason for this is that Knex [does not currently support][13] specifying
+the handling of nulls using their `orderBy` query builder method. In order to
+implement the nullable column feature, I had to switch to raw SQL whenever a
+nullable column is specified, and of course identifier mappers provided either
+to Knex or to Objection will not work with raw SQL.
+
+Some potential features are planned to deal with this inconvenience, one of
+which is the issue within Knex linked above. In the meantime, whenever you
+include `nullable: true` for *any* column in a sort, the *entire* sort must use
+the exact database identifiers for both table and column names.
+
+If, for example, we were using Objection's snake case mappers so that
+identifiers are in snake case in the database, but camelCase in our TS/JS code,
+we'd need to modify the `PeopleWithFavoriteFoods` example above like so:
+
+```ts
+import {
+	ColumnType,
+	Paginator,
+	SortDirection,
+} from '@batterii/objection-paginator';
+import { Person } from '../models/person';
+import { QueryBuilder } from 'objection';
+
+export class PeopleWithFavoriteFoods extends Paginator<Person> {
+	static sorts = {
+		default: [
+			/*
+			 * Note the differences here. The table names and column names have
+			 * to be specified in camel case, but the valuePaths remain in
+			 * camel case. They need to be specified separately, for this
+			 * reason.
+			 */
+			{
+				column: 'favorite_food.name',
+				nullable: true,
+				valuePath: 'favoriteFood.name',
+			}
+			{ column: 'first_name', valuePath: 'firstName' },
+			{ column: 'last_name', valuePath: 'lastName' },
+
+			/*
+			 * This descriptor can remain the same, though, because `people`and
+			 * `id` are the same in both snake case and camel case.
+			 */
+			{
+				column: 'people.id',
+				columnType: ColumnType.Integer,
+				valuePath: 'id',
+			},
+		],
+	};
+
+	getBaseQuery(): QueryBuilder<User> {
+		/*
+		 * The join operation for `withGraphJoined` defaults to a left join, so
+		 * there is no need to specify. The favoriteFood for each person will be
+		 * loaded if known, and null if not known.
+		 */
+		return Person.query().withGraphJoined('favoriteFood');
+	}
+}
+```
+
+There are more extensive examples of dealign with this problem in the
+integration tests in the repo for this project.
 
 
 ## Paginator Arguments
@@ -609,3 +768,5 @@ easily-checked heirarchy. The errors it exposes are:
 [9]: https://koajs.com/
 [10]: https://www.npmjs.com/package/nani
 [11]: https://www.xaprb.com/blog/2006/05/18/why-null-never-compares-false-to-anything-in-sql/
+[12]: https://vincit.github.io/objection.js/recipes/snake-case-to-camel-case-conversion.html
+[13]: https://github.com/knex/knex/issues/3667

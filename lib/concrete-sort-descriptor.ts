@@ -29,6 +29,11 @@ export class ConcreteSortDescriptor {
 	columnType: ColumnType;
 
 	/**
+	 * Indicates whether or not th ecolumn is nullable.
+	 */
+	nullable: boolean;
+
+	/**
 	 * The sort direction.
 	 */
 	direction: SortDirection;
@@ -51,6 +56,7 @@ export class ConcreteSortDescriptor {
 		if (isString(descriptor)) descriptor = { column: descriptor };
 		defaults(this, descriptor, {
 			columnType: ColumnType.String,
+			nullable: false,
 			direction: SortDirection.Ascending,
 			valuePath: descriptor.column,
 		});
@@ -116,7 +122,14 @@ export class ConcreteSortDescriptor {
 	 * @returns The unmutated value.
 	 */
 	validateCursorValue(value: any, validationCase: ValidationCase): any {
-		if (!this.checkCursorValue(value)) {
+		if (value === null) {
+			if (!this.nullable) {
+				throw new (getErrorClass(validationCase))(
+					'Cursor value is null, but column is not nullable',
+					{ info: { value: null } },
+				);
+			}
+		} else if (!this.checkCursorValue(value)) {
 			throw new (getErrorClass(validationCase))(
 				'Cursor value does not match its column type',
 				{ info: { value, columnType: this.columnType } },
@@ -142,17 +155,16 @@ export class ConcreteSortDescriptor {
 	 * Gets the cursor value for this descriptor from the provided entity.
 	 *
 	 * @remarks
-	 * This is a convenience method that also validates the value while fetching
-	 * it. It is used during cursor creation only, so validation errors thrown
-	 * here will be ConfigurationErrors.
+	 * This method also validates the value while fetching it. It is used during
+	 * cursor creation only, so validation errors thrown here will be
+	 * ConfigurationErrors.
 	 *
 	 * @param entity - The entity from which to fetch the value.
-	 * @returns The fetched cursor value.
+	 * @returns The fetched cursor value, or null if none was found.
 	 */
 	getCursorValue(entity: object): any {
-		return this.validateCursorValue(
-			getPath(entity, this.valuePath),
-			ValidationCase.Configuration,
-		);
+		let value = getPath(entity, this.valuePath);
+		if (value === undefined) value = null;
+		return this.validateCursorValue(value, ValidationCase.Configuration);
 	}
 }

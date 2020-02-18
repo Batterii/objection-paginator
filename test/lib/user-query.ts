@@ -36,10 +36,90 @@ export class UserQuery extends Paginator<User> {
 				direction: SortDirection.Descending,
 			},
 		],
+		byFavoriteFoodId: [
+			{
+				column: 'favorite_food_id',
+				columnType: ColumnType.Integer,
+				nullable: true,
+				valuePath: 'favoriteFoodId',
+			},
+			{ column: 'first_name', valuePath: 'firstName' },
+			{ column: 'last_name', valuePath: 'lastName' },
+			{ column: 'id', columnType: ColumnType.Integer },
+		],
+		byFavoriteFoodIdReversed: [
+			{
+				column: 'favorite_food_id',
+				columnType: ColumnType.Integer,
+				nullable: true,
+				direction: SortDirection.Descending,
+				valuePath: 'favoriteFoodId',
+			},
+			{
+				column: 'first_name',
+				direction: SortDirection.Descending,
+				valuePath: 'firstName',
+			},
+			{
+				column: 'last_name',
+				direction: SortDirection.Descending,
+				valuePath: 'lastName',
+			},
+			{
+				column: 'id',
+				columnType: ColumnType.Integer,
+				direction: SortDirection.Descending,
+			},
+		],
+		byFavoriteFoodName: [
+			{
+				column: 'favorite_food.name',
+				nullable: true,
+				valuePath: 'favoriteFood.name',
+			},
+			{ column: 'first_name', valuePath: 'firstName' },
+			{ column: 'last_name', valuePath: 'lastName' },
+			{
+				column: 'users.id',
+				columnType: ColumnType.Integer,
+				valuePath: 'id',
+			},
+		],
+		byFavoriteFoodNameReversed: [
+			{
+				column: 'favorite_food.name',
+				nullable: true,
+				valuePath: 'favoriteFood.name',
+				direction: SortDirection.Descending,
+			},
+			{
+				column: 'first_name',
+				valuePath: 'firstName',
+				direction: SortDirection.Descending,
+			},
+			{
+				column: 'last_name',
+				valuePath: 'lastName',
+				direction: SortDirection.Descending,
+			},
+			{
+				column: 'users.id',
+				columnType: ColumnType.Integer,
+				valuePath: 'id',
+				direction: SortDirection.Descending,
+			},
+		],
 	};
 
 	getBaseQuery(): QueryBuilder<User> {
-		return User.query();
+		const qry = User.query();
+		if (
+			this.sort === 'byFavoriteFoodName' ||
+			this.sort === 'byFavoriteFoodNameReversed'
+		) {
+			qry.withGraphJoined('favoriteFood');
+		}
+		return qry;
 	}
 }
 

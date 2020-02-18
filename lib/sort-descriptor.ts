@@ -89,6 +89,27 @@ export interface SortDescriptor {
 	columnType?: ColumnType;
 
 	/**
+	 * Set to true to indicate that the column is nullable in your database.
+	 * Defaults to false.
+	 *
+	 * @remarks
+	 * Knex's query builder does not support specifying how to handle nulls
+	 * using its `orderBy` method. Because of this, if any of your columns are
+	 * nullable, the ORDER BY clause for the entire sort must be built using raw
+	 * SQL.
+	 *
+	 * As with any raw SQL expression, this will disrupt any knex-level table
+	 * and column name mappers you may be using. Solutions for this problem are
+	 * being explored, but most will involve some kind of change to Knex. For
+	 * the time being, if you set nullable to true for any of a sort's columns,
+	 * *all* of the column names and table names in that sort must be specified
+	 * by their exact database names. This will likely cause you to have to
+	 * specify the `valuePath` as well, unless you are also using the exact same
+	 * names for your property names in your Objection models.
+	 */
+	nullable?: boolean;
+
+	/**
 	 * The direction to sort this column, 'asc' or 'desc'. Defaults to 'asc'.
 	 */
 	direction?: SortDirection;

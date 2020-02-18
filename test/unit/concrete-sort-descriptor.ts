@@ -32,9 +32,16 @@ describe('ConcreteSortDescriptor', function() {
 	it('stores info from the provided descriptor', function() {
 		expect(descriptor.column).to.equal(column);
 		expect(descriptor.columnType).to.equal(columnType);
+		expect(descriptor.nullable).to.be.false;
 		expect(descriptor.direction).to.equal(direction);
 		expect(descriptor.valuePath).to.equal(valuePath);
 		expect(descriptor.validate).to.equal(validate);
+	});
+
+	it('suppoers specifying true for nullable', function() {
+		descriptor = new ConcreteSortDescriptor({ column, nullable: true });
+
+		expect(descriptor.nullable).to.be.true;
 	});
 
 	it('uses string as the default column type', function() {
@@ -49,34 +56,19 @@ describe('ConcreteSortDescriptor', function() {
 	});
 
 	it('uses ascending as the default sort direction', function() {
-		descriptor = new ConcreteSortDescriptor({
-			column,
-			columnType,
-			valuePath,
-			validate,
-		});
+		descriptor = new ConcreteSortDescriptor({ column });
 
 		expect(descriptor.direction).to.equal(SortDirection.Ascending);
 	});
 
 	it('uses column name as the default value path', function() {
-		descriptor = new ConcreteSortDescriptor({
-			column,
-			columnType,
-			direction,
-			validate,
-		});
+		descriptor = new ConcreteSortDescriptor({ column });
 
 		expect(descriptor.valuePath).to.equal(column);
 	});
 
 	it('does not use a default validation function', function() {
-		descriptor = new ConcreteSortDescriptor({
-			column,
-			columnType,
-			direction,
-			valuePath,
-		});
+		descriptor = new ConcreteSortDescriptor({ column });
 
 		expect(descriptor.validate).to.be.undefined;
 	});
@@ -86,6 +78,7 @@ describe('ConcreteSortDescriptor', function() {
 
 		expect(descriptor.column).to.equal(column);
 		expect(descriptor.columnType).to.equal(ColumnType.String);
+		expect(descriptor.nullable).to.be.false;
 		expect(descriptor.direction).to.equal(SortDirection.Ascending);
 		expect(descriptor.valuePath).to.equal(column);
 		expect(descriptor.validate).to.be.undefined;
@@ -221,6 +214,15 @@ describe('ConcreteSortDescriptor', function() {
 				.to.equal(value);
 		});
 
+		it('suports falsy values', function() {
+			const result = descriptor.validateCursorValue(
+				false,
+				validationCase,
+			);
+
+			expect(result).to.be.false;
+		});
+
 		it('throws without calling validation function, if type check fails', function() {
 			checkCursorValue.returns(false);
 
@@ -266,6 +268,39 @@ describe('ConcreteSortDescriptor', function() {
 					return true;
 				});
 		});
+
+		context('provided value is null', function() {
+			it('throws with no other checks if nullable is false', function() {
+				expect(() => {
+					descriptor.validateCursorValue(null, validationCase);
+				}).to.throw(TestValidationError)
+					.that.satisfies((err: TestValidationError) => {
+						expect(err.shortMessage).to.equal(
+							'Cursor value is null, but column is not nullable',
+						);
+						expect(err.cause).to.be.null;
+						expect(err.info).to.deep.equal({ value: null });
+						return true;
+					});
+				expect(checkCursorValue).to.not.be.called;
+				expect(validateStub).to.not.be.be.called;
+			});
+
+			it('skips type check and proceeds normally is nullable is true', function() {
+				descriptor.nullable = true;
+
+				const result = descriptor.validateCursorValue(
+					null,
+					validationCase,
+				);
+
+				expect(checkCursorValue).to.not.be.called;
+				expect(validateStub).to.be.calledOnce;
+				expect(validateStub).to.be.calledOn(descriptor);
+				expect(validateStub).to.be.calledWith(null);
+				expect(result).to.be.null;
+			});
+		});
 	});
 
 	describe('#getCursorValue', function() {
@@ -304,6 +339,34 @@ describe('ConcreteSortDescriptor', function() {
 
 		it('returns the cursor value', function() {
 			expect(descriptor.getCursorValue(entity)).to.equal(value);
+		});
+
+		it('replaces undefined cursor values with null', function() {
+			getPath.returns(undefined);
+
+			const result = descriptor.getCursorValue(entity);
+
+			expect(validateCursorValue).to.be.calledOnce;
+			expect(validateCursorValue).to.be.calledOn(descriptor);
+			expect(validateCursorValue).to.be.calledWith(
+				null,
+				ValidationCase.Configuration,
+			);
+			expect(result).to.be.null;
+		});
+
+		it('supports falsy cursor values', function() {
+			getPath.returns(false);
+
+			const result = descriptor.getCursorValue(entity);
+
+			expect(validateCursorValue).to.be.calledOnce;
+			expect(validateCursorValue).to.be.calledOn(descriptor);
+			expect(validateCursorValue).to.be.calledWith(
+				false,
+				ValidationCase.Configuration,
+			);
+			expect(result).to.be.false;
 		});
 	});
 });

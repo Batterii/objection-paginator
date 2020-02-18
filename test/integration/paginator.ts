@@ -7,6 +7,7 @@ import {
 import { MemberRole, Membership } from '../lib/membership';
 import { Model, PartialModelObject, knexSnakeCaseMappers } from 'objection';
 import { User, UserRole } from '../lib/user';
+import { Food } from '../lib/food';
 import Knex from 'knex';
 import { MemberQuery } from '../lib/member-query';
 import { Project } from '../lib/project';
@@ -34,6 +35,11 @@ describe('Paginator (Integration)', function() {
 
 		Model.knex(knex);
 
+		await knex.schema.createTable('foods', (table) => {
+			table.increments('id').primary();
+			table.string('name').notNullable();
+		});
+
 		await knex.schema.createTable('users', (table) => {
 			table.increments('id').primary();
 			table.string('firstName').notNullable();
@@ -41,6 +47,11 @@ describe('Paginator (Integration)', function() {
 			table.string('role').notNullable().defaultTo(UserRole.RegularUser);
 			table.boolean('suspended').notNullable().defaultTo(false);
 			table.float('score').notNullable().defaultTo(0);
+			table
+				.integer('favoriteFoodId')
+				.references('id')
+				.inTable('foods')
+				.onDelete('SET NULL');
 		});
 
 		await knex.schema.createTable('projects', (table) => {
@@ -69,14 +80,25 @@ describe('Paginator (Integration)', function() {
 			table.unique([ 'projectId', 'userId' ]);
 		});
 
+		const foods: PartialModelObject<Food>[] = [
+			{ name: 'Tacos' },
+			{ name: 'Pizza' },
+		];
+
 		const users: PartialModelObject<User>[] = [
 			{
 				firstName: 'Steve',
 				lastName: 'Ripberger',
 				role: UserRole.Administrator,
+				favoriteFoodId: 2,
 			},
-			{ firstName: 'Terd', lastName: 'Ferguson', score: 0.5 },
-			{ firstName: 'Dude', lastName: 'Bro' },
+			{
+				firstName: 'Terd',
+				lastName: 'Ferguson',
+				score: 0.5,
+				favoriteFoodId: 1,
+			},
+			{ firstName: 'Dude', lastName: 'Bro', favoriteFoodId: 2 },
 			{ firstName: 'Cool', lastName: 'Guy', suspended: true },
 			{ firstName: 'Terd', lastName: 'McGee', score: 0.5 },
 		];
@@ -98,6 +120,7 @@ describe('Paginator (Integration)', function() {
 		];
 
 		/* eslint-disable no-await-in-loop */
+		for (const food of foods) await Food.query().insert(food);
 		for (const user of users) await User.query().insert(user);
 		for (const project of projects) await Project.query().insert(project);
 		for (const membership of memberships) {
@@ -385,5 +408,149 @@ describe('Paginator (Integration)', function() {
 			expect(err.cause).to.be.null;
 			expect(err.info).to.deep.equal({ value: 'foo' });
 		}
+	});
+
+	it('supports ascending sorts with nullable columns', async function() {
+		// Create a query that sorts on a nullable column.
+		const qry = new UserQuery({ sort: 'byFavoriteFoodId', limit: 2 });
+		let items: User[];
+		let remaining: number;
+		let cursor: string;
+
+		// First page.
+		({ items, remaining, cursor } = await qry.execute());
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Terd Ferguson');
+		expect(items[0].favoriteFoodId).to.equal(1);
+		expect(items[1].name).to.equal('Dude Bro');
+		expect(items[1].favoriteFoodId).to.equal(2);
+		expect(remaining).to.equal(3);
+
+		// Second page.
+		({ items, remaining, cursor } = await qry.execute(cursor));
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Steve Ripberger');
+		expect(items[0].favoriteFoodId).to.equal(2);
+		expect(items[1].name).to.equal('Cool Guy');
+		expect(items[1].favoriteFoodId).to.be.null;
+		expect(remaining).to.equal(1);
+
+		// Last page.
+		({ items, remaining } = await qry.execute(cursor));
+		expect(items).to.have.length(1);
+		expect(items[0].name).to.equal('Terd McGee');
+		expect(items[0].favoriteFoodId).to.be.null;
+		expect(remaining).to.equal(0);
+	});
+
+	it('supports descending sorts with nullable columns', async function() {
+		// The same as the previous test, just in reverse.
+		const reversed = new UserQuery({
+			sort: 'byFavoriteFoodIdReversed',
+			limit: 2,
+		});
+		let items: User[];
+		let remaining: number;
+		let cursor: string;
+
+		// First page.
+		({ items, remaining, cursor } = await reversed.execute());
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Terd McGee');
+		expect(items[0].favoriteFoodId).to.be.null;
+		expect(items[1].name).to.equal('Cool Guy');
+		expect(items[1].favoriteFoodId).to.be.null;
+		expect(remaining).to.equal(3);
+
+		// Second page.
+		({ items, remaining, cursor } = await reversed.execute(cursor));
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Steve Ripberger');
+		expect(items[0].favoriteFoodId).to.equal(2);
+		expect(items[1].name).to.equal('Dude Bro');
+		expect(items[1].favoriteFoodId).to.equal(2);
+		expect(remaining).to.equal(1);
+
+		// Last page.
+		({ items, remaining } = await reversed.execute(cursor));
+		expect(items).to.have.length(1);
+		expect(items[0].name).to.equal('Terd Ferguson');
+		expect(items[0].favoriteFoodId).to.equal(1);
+		expect(remaining).to.equal(0);
+	});
+
+	it('supports ascending sorts with nullable related columns', async function() {
+		/*
+		 * Create a query that sorts on a column in a related table where the
+		 * joining reference column on the original table might be null.
+		 *
+		 * This will be similar to a previous test, but is sorting by the name
+		 * of a person's favorite food, rather than its id in the database.
+		 */
+		const qry = new UserQuery({ sort: 'byFavoriteFoodName', limit: 2 });
+		let items: User[];
+		let remaining: number;
+		let cursor: string;
+
+		// First page.
+		({ items, remaining, cursor } = await qry.execute());
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Dude Bro');
+		expect(items[0].favoriteFood!.name).to.equal('Pizza');
+		expect(items[1].name).to.equal('Steve Ripberger');
+		expect(items[1].favoriteFood!.name).to.equal('Pizza');
+		expect(remaining).to.equal(3);
+
+		// Second page.
+		({ items, remaining, cursor } = await qry.execute(cursor));
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Terd Ferguson');
+		expect(items[0].favoriteFood!.name).to.equal('Tacos');
+		expect(items[1].name).to.equal('Cool Guy');
+		expect(items[1].favoriteFood).to.be.null;
+		expect(remaining).to.equal(1);
+
+		// Last page.
+		({ items, remaining } = await qry.execute(cursor));
+		expect(items).to.have.length(1);
+		expect(items[0].name).to.equal('Terd McGee');
+		expect(items[0].favoriteFood).to.be.null;
+		expect(remaining).to.equal(0);
+	});
+
+	it('supports ascending sorts with nullable related columns', async function() {
+		// Again, this is the same as the previous test, just in reverse.
+		const qry = new UserQuery({
+			sort: 'byFavoriteFoodNameReversed',
+			limit: 2,
+		});
+		let items: User[];
+		let remaining: number;
+		let cursor: string;
+
+		// First page.
+		({ items, remaining, cursor } = await qry.execute());
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Terd McGee');
+		expect(items[0].favoriteFood).to.be.null;
+		expect(items[1].name).to.equal('Cool Guy');
+		expect(items[1].favoriteFood).to.be.null;
+		expect(remaining).to.equal(3);
+
+		// Second page.
+		({ items, remaining, cursor } = await qry.execute(cursor));
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Terd Ferguson');
+		expect(items[0].favoriteFood!.name).to.equal('Tacos');
+		expect(items[1].name).to.equal('Steve Ripberger');
+		expect(items[1].favoriteFood!.name).to.equal('Pizza');
+		expect(remaining).to.equal(1);
+
+		// Last page.
+		({ items, remaining } = await qry.execute(cursor));
+		expect(items).to.have.length(1);
+		expect(items[0].name).to.equal('Dude Bro');
+		expect(items[0].favoriteFood!.name).to.equal('Pizza');
+		expect(remaining).to.equal(0);
 	});
 });

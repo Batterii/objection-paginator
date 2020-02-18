@@ -1,6 +1,7 @@
 import { Model, OrderByDescriptor, QueryBuilder } from 'objection';
 import { ConcreteSortDescriptor } from './concrete-sort-descriptor';
 import { ConfigurationError } from './configuration-error';
+import { SortDirection } from './sort-descriptor';
 import { ValidationCase } from './get-error-class';
 import { isEmpty } from 'lodash';
 
@@ -28,12 +29,21 @@ export class SortNode {
 	child?: SortNode;
 
 	/**
+	 * Will be true if any descriptor specified a nullable column.
+	 *
+	 * @remarks
+	 * This is necessary because the Knex query builder does not support
+	 * specifying how to handle nulls with its orderBy method. If any columns
+	 * in the sort are nullable, the order must be specified using raw SQL.
+	 */
+	anyNullable: boolean;
+
+	/**
 	 * Creates a SortNode.
 	 * @param descriptors - The concrete sort descriptors, created from the
 	 *   user-specified sort configuration.
 	 */
 	constructor(descriptors: ConcreteSortDescriptor[]) {
-		// Extract and store the first descriptor.
 		const [ firstDescriptor ] = descriptors;
 		if (!firstDescriptor) {
 			throw new ConfigurationError(
@@ -41,11 +51,12 @@ export class SortNode {
 			);
 		}
 		this.descriptor = firstDescriptor;
+		this.anyNullable = firstDescriptor.nullable;
 
-		// Create a child node with any remaining descriptors.
 		const subdescriptors = descriptors.slice(1);
 		if (!isEmpty(subdescriptors)) {
 			this.child = new SortNode(subdescriptors);
+			this.anyNullable = this.anyNullable || this.child.anyNullable;
 		}
 	}
 
@@ -67,14 +78,34 @@ export class SortNode {
 	 *   sort.
 	 */
 	apply(qry: QueryBuilder<Model>, cursorValues?: any[]): void {
-		qry.orderBy(this.getOrderByDescriptors());
+		this.applyOrder(qry);
 		if (cursorValues) this.applyCursorValues(qry, cursorValues);
+	}
+
+	/**
+	 * Adds an order specifier to the provided query.
+	 *
+	 * @remarks
+	 * This method will use either a Knex orderBy expression, or specify the
+	 * order in raw sql, depending on whether any columns in the sort are
+	 * nullable.
+	 *
+	 * This method mutates the provided query.
+	 *
+	 * @param qry - The query to which to apply an order.
+	 */
+	applyOrder(qry: QueryBuilder<Model>): void {
+		if (this.anyNullable) {
+			qry.orderByRaw(this.getOrderByClause());
+		} else {
+			qry.orderBy(this.getOrderByDescriptors());
+		}
 	}
 
 	/**
 	 * Gets the Objection orderBy descriptors for this node and all of its
 	 * subsorts.
-	 * @returns The orderBy descriptors, which can be provided directly to the
+	 * @returns The orderBy descriptors, which can be provided directly to tfhe
 	 *    builder's #orderBy method.
 	 */
 	getOrderByDescriptors(): OrderByDescriptor[] {
@@ -83,6 +114,41 @@ export class SortNode {
 		const result: OrderByDescriptor[] = [ { column, order: direction } ];
 		if (child) result.push(...child.getOrderByDescriptors());
 		return result;
+	}
+
+	/**
+	 * Returns a raw ORDER BY clause for this node and all of its subsorts.
+	 * @returns The ORDER BY clause in raw SQL.
+	 */
+	getOrderByClause(): string {
+		return this.getOrderByTerms().join(', ');
+	}
+
+	/**
+	 * Gets the raw ORDER BY terms for this node and all of its subsorts.
+	 * @returns The ORDER BY terms in raw SQL.
+	 */
+	getOrderByTerms(): string[] {
+		const terms = this.getOwnOrderByTerms();
+		if (this.child) terms.push(...this.child.getOrderByTerms());
+		return terms;
+	}
+
+	/**
+	 * Gets the raw ORDER BY terms for this node alone.
+	 *
+	 * @remarks
+	 * A nullable column will need to return more than just one term, so that
+	 * we can explicitly tell the database how nulls should be sorted instead of
+	 * leaving it to inconsistent defaults.
+	 *
+	 * @returns The ORDER BY terms in raw SQL.
+	 */
+	getOwnOrderByTerms(): string[] {
+		const { column, direction, nullable } = this.descriptor;
+		const terms = [ `${column} ${direction}` ];
+		if (nullable) terms.unshift(`(${column} is null) ${direction}`);
+		return terms;
 	}
 
 	/**
@@ -125,31 +191,148 @@ export class SortNode {
 	 * @param values - The cursor values to apply.
 	 */
 	applyCursorValues(qry: QueryBuilder<Model>, values: any[]): void {
-		// Get the descriptor and child.
-		const { descriptor, child } = this;
-
-		// Get column name, inequality operator, and next cursor value.
-		const { column } = descriptor;
-		const operator = descriptor.getOperator();
 		const [ value ] = values;
+		const childValues = values.slice(1);
+		this.descriptor.validateCursorValue(value, ValidationCase.Cursor);
+		if (value === null) {
+			this.applyNullCursorValue(qry, childValues);
+		} else {
+			this.applyCursorValue(qry, value, childValues);
+		}
+	}
 
-		// Validate the cursor value.
-		descriptor.validateCursorValue(value, ValidationCase.Cursor);
-
+	/**
+	 * Adds the provided non-null cursor value as a filter on the provided
+	 * query builder.
+	 *
+	 * @remarks
+	 * If the node has a child, child cursor values will be applied recursively
+	 * through that child.
+	 *
+	 * This method is for non-null cursor values only. Null cursor values should
+	 * use `#applyNullCursorValue` instead.
+	 *
+	 * This method mutates the provided query builder.
+	 *
+	 * @param qry - The query to which to apply filters.
+	 * @param value - The current cursor value.
+	 * @param childValues - Cursor values for child nodes, if any.
+	 */
+	applyCursorValue(
+		qry: QueryBuilder<Model>,
+		value: any,
+		childValues: any[],
+	): void {
+		const { descriptor, child } = this;
+		const { column } = descriptor;
 		if (child) {
-			// Handle the child recursively.
 			qry.where((sub0) => {
-				// "Or" the inequality with a nested expression.
-				sub0.where(column, operator, value).orWhere((sub1) => {
-					// Check for equivalence, along with filters for the child.
-					sub1.where({ [column]: value }).andWhere((sub2) => {
-						child.applyCursorValues(sub2, values.slice(1));
+				sub0
+					.where((sub1) => {
+						this.applyInequality(sub1, value);
+					})
+					.orWhere((sub1) => {
+						sub1.where({ [column]: value });
+						child.applyCursorValues(sub1, childValues);
 					});
-				});
 			});
 		} else {
-			// The final node can be the inequality by itself.
-			qry.where(column, operator, value);
+			this.applyInequality(qry, value);
+		}
+	}
+
+	/**
+	 * Applies null as a cursor value filter on the provided query builder.
+	 *
+	 * @remarks
+	 * If the node has a child, child cursor values will be applied recursively
+	 * through that child.
+	 *
+	 * This method mutates the provided query builder.
+	 *
+	 * @param qry - The query to which to apply filters
+	 * @param childValues - Cursor values for child nodes, if any.
+	 */
+	applyNullCursorValue(qry: QueryBuilder<Model>, childValues: any[]): void {
+		const { descriptor, child } = this;
+		const { column, direction } = descriptor;
+		if (child) {
+			this.applyNullCursorValueWithChildren(qry, childValues);
+		} else if (direction === SortDirection.Ascending) {
+			qry.whereNull(column);
+		}
+	}
+
+	/**
+	 * Modifies a query to filter out items with values before the provided
+	 * value in the sort.
+	 *
+	 * @remarks
+	 * This method mutates the provided query builder.
+	 *
+	 * @param qry - The query builder to mutate.
+	 * @param value - The value for the inequality filter.
+	 */
+	applyInequality(qry: QueryBuilder<Model>, value: any): void {
+		const { descriptor } = this;
+		const { column, nullable } = descriptor;
+		const operator = descriptor.getOperator();
+		qry.where(column, operator, value);
+		if (nullable) this.handleNulls(qry);
+	}
+
+	/**
+	 * Modifies a query to account for nulls, following an inequality filter.
+	 *
+	 * @remarks
+	 * In SQL, null values fail all inequalty expressions, so an inequality
+	 * filter will always screen out all nulls. This method is invoked following
+	 * the application of an inequality filter on a nullable column, to ensure
+	 * that nulls are also included, if they should be based on the sort
+	 * direction.
+	 *
+	 * This method may mutate the provided query builder.
+	 *
+	 * @param qry - The query builder to which an inequality filter was added.
+	 */
+	handleNulls(qry: QueryBuilder<Model>): void {
+		const { column, direction } = this.descriptor;
+		if (direction === SortDirection.Ascending) qry.orWhereNull(column);
+	}
+
+	/**
+	 * Applies null as a cursor value filter on the provided query builder,
+	 * assuming the node has a child.
+	 *
+	 * @remarks
+	 * This method assumes the child exists and will throw if it doesn't. It
+	 * exists separately from the `#applyNullCursorValue` method largely to
+	 * simplify tests.
+	 *
+	 * @param qry - The query to which to apply filters
+	 * @param childValues - Cursor values for child nodes, if any.
+	 */
+	applyNullCursorValueWithChildren(
+		qry: QueryBuilder<Model>,
+		childValues: any[],
+	): void {
+		const { descriptor, child } = this as Required<SortNode>;
+		const { column, direction } = descriptor;
+		switch (direction) {
+			case SortDirection.Ascending:
+				qry.whereNull(column);
+				child.applyCursorValues(qry, childValues);
+				break;
+			case SortDirection.Descending:
+				qry.whereNotNull(column).orWhere((sub) => {
+					sub.whereNull(column);
+					child.applyCursorValues(sub, childValues);
+				});
+				break;
+			default:
+				throw new ConfigurationError(
+					`Unknown sort direction '${direction}'`,
+				);
 		}
 	}
 }
