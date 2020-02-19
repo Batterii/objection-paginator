@@ -5,7 +5,6 @@ import {
 	QueryBuilder,
 } from 'objection';
 import { ConcreteSortDescriptor } from '../../lib/concrete-sort-descriptor';
-import { ConfigurationError } from '../../lib/configuration-error';
 import { FakeQuery } from '@batterii/fake-query';
 import { SortDirection } from '../../lib/sort-descriptor';
 import { SortNode } from '../../lib/sort-node';
@@ -78,10 +77,8 @@ describe('SortNode', function() {
 	it('throws if no descriptors are provided', function() {
 		expect(() => {
 			new SortNode([]); // eslint-disable-line no-new
-		}).to.throw(ConfigurationError).that.includes({
-			shortMessage: 'At least one sort descriptor is required',
-			cause: null,
-			info: null,
+		}).to.throw(TypeError).that.includes({
+			message: 'At least one sort descriptor is required',
 		});
 	});
 
@@ -193,19 +190,19 @@ describe('SortNode', function() {
 
 	describe('#getOrderByDescriptors', function() {
 		const column = 'some column name';
-		const direction = 'sort direction' as SortDirection;
+		const order = 'sort order' as 'asc'|'desc';
 		let descriptor: ConcreteSortDescriptor;
 		let node: SortNode;
 
 		beforeEach(function() {
-			descriptor = { column, direction } as ConcreteSortDescriptor;
+			descriptor = { column, order } as ConcreteSortDescriptor;
 			node = new SortNode([ descriptor ]);
 		});
 
 		it('returns a descriptor with column and order', function() {
 			const result = node.getOrderByDescriptors();
 
-			expect(result).to.deep.equal([ { column, order: direction } ]);
+			expect(result).to.deep.equal([ { column, order } ]);
 		});
 
 		context('node has a child', function() {
@@ -226,7 +223,7 @@ describe('SortNode', function() {
 
 			it('appends child descriptors to the result', function() {
 				expect(node.getOrderByDescriptors()).to.deep.equal([
-					{ column, order: direction },
+					{ column, order },
 					{ foo: 'bar' },
 					{ baz: 'qux' },
 				]);
@@ -304,18 +301,19 @@ describe('SortNode', function() {
 
 	describe('#getOwnOrderByTerms', function() {
 		const column = 'column';
-		const direction = 'direction' as SortDirection;
+		const order = 'order' as 'asc'|'desc';
+		const nullOrder = 'nullOrder' as 'asc'|'desc';
 		let descriptor: ConcreteSortDescriptor;
 		let node: SortNode;
 
 		beforeEach(function() {
-			descriptor = new ConcreteSortDescriptor({ column, direction });
+			descriptor = { column, order, nullOrder } as ConcreteSortDescriptor;
 			node = new SortNode([ descriptor ]);
 		});
 
 		it('returns the first ORDER BY term in an array', function() {
 			expect(node.getOwnOrderByTerms()).to.deep.equal([
-				'column direction',
+				'column order',
 			]);
 		});
 
@@ -323,8 +321,8 @@ describe('SortNode', function() {
 			descriptor.nullable = true;
 
 			expect(node.getOwnOrderByTerms()).to.deep.equal([
-				'(column is null) direction',
-				'column direction',
+				'(column is null) nullOrder',
+				'column order',
 			]);
 		});
 	});
@@ -630,12 +628,24 @@ describe('SortNode', function() {
 				expect(applyNullCursorValueWithChildren).to.not.be.called;
 			});
 
-			it('does not change the query for other sort directions', function() {
-				descriptor.direction = 'other direction' as SortDirection;
+			it('does not change the query if sort direction is descending', function() {
+				descriptor.direction = SortDirection.Descending;
 
 				node.applyNullCursorValue(qry.builder, childValues);
 
 				expect(qry.stubNames).to.be.empty;
+				expect(applyNullCursorValueWithChildren).to.not.be.called;
+			});
+
+			it('adds a whereNull to the query if sort direction is descending nulls last', function() {
+				descriptor.direction = SortDirection.DescendingNullsLast;
+
+				node.applyNullCursorValue(qry.builder, childValues);
+
+				expect(qry.stubNames).to.deep.equal([ 'whereNull' ]);
+				expect(qry.stubs.whereNull).to.be.calledOnce;
+				expect(qry.stubs.whereNull).to.be.calledOn(qry.builder);
+				expect(qry.stubs.whereNull).to.be.calledWith(column);
 				expect(applyNullCursorValueWithChildren).to.not.be.called;
 			});
 		});
@@ -674,21 +684,10 @@ describe('SortNode', function() {
 		let handleNulls: sinon.SinonStub;
 
 		beforeEach(function() {
-			descriptor = sinon.createStubInstance(ConcreteSortDescriptor);
-			descriptor.column = column;
-			descriptor.nullable = false;
-			descriptor.getOperator.returns(operator);
-
+			descriptor = { column, operator, nullable: false } as any;
 			node = new SortNode([ descriptor ]);
 			qry = new FakeQuery();
 			handleNulls = sinon.stub(node, 'handleNulls');
-		});
-
-		it('gets the operator from the descriptor', function() {
-			node.applyInequality(qry.builder, value);
-
-			expect(descriptor.getOperator).to.be.calledOnce;
-			expect(descriptor.getOperator).to.be.calledOn(descriptor);
 		});
 
 		it('adds an inequality filter to the query builder', function() {
@@ -741,12 +740,23 @@ describe('SortNode', function() {
 			expect(qry.stubs.orWhereNull).to.be.calledWith(column);
 		});
 
-		it('does not change query for other directions', function() {
-			descriptor.direction = 'other direction' as SortDirection;
+		it('does not change query if sort is descending', function() {
+			descriptor.direction = SortDirection.Descending;
 
 			node.handleNulls(qry.builder);
 
 			expect(qry.stubNames).to.be.empty;
+		});
+
+		it('adds an orWhereNull to the query if sort is descending nulls last', function() {
+			descriptor.direction = SortDirection.DescendingNullsLast;
+
+			node.handleNulls(qry.builder);
+
+			expect(qry.stubNames).to.deep.equal([ 'orWhereNull' ]);
+			expect(qry.stubs.orWhereNull).to.be.calledOnce;
+			expect(qry.stubs.orWhereNull).to.be.calledOn(qry.builder);
+			expect(qry.stubs.orWhereNull).to.be.calledWith(column);
 		});
 	});
 
@@ -853,22 +863,32 @@ describe('SortNode', function() {
 			});
 		});
 
-		context('sort direction is anything else', function() {
+		context('sort direction is descending nulls last', function() {
 			beforeEach(function() {
-				descriptor.direction = 'other direction' as SortDirection;
+				descriptor.direction = SortDirection.DescendingNullsLast;
 			});
 
-			it('throws a configuration error', function() {
-				expect(() => {
-					node.applyNullCursorValueWithChildren(
-						qry.builder,
-						childValues,
-					);
-				}).to.throw(ConfigurationError).that.includes({
-					message: 'Unknown sort direction \'other direction\'',
-					cause: null,
-					info: null,
-				});
+			it('adds a whereNull to the query', function() {
+				node.applyNullCursorValueWithChildren(qry.builder, childValues);
+
+				expect(qry.stubNames).to.deep.equal([ 'whereNull' ]);
+				expect(qry.stubs.whereNull).to.be.calledOnce;
+				expect(qry.stubs.whereNull).to.be.calledOn(qry.builder);
+				expect(qry.stubs.whereNull).to.be.calledWith(column);
+			});
+
+			it('also applies child cursor values using the child', function() {
+				node.applyNullCursorValueWithChildren(qry.builder, childValues);
+
+				expect(child.applyCursorValues).to.be.calledOnce;
+				expect(child.applyCursorValues).to.be.calledOn(child);
+				expect(child.applyCursorValues).to.be.calledWith(
+					sinon.match.same(qry.builder),
+					sinon.match.same(childValues),
+				);
+				expect(child.applyCursorValues).to.be.calledAfter(
+					qry.stubs.whereNull!,
+				);
 			});
 		});
 	});

@@ -109,14 +109,35 @@ export class UserQuery extends Paginator<User> {
 				direction: SortDirection.Descending,
 			},
 		],
+		byFavoriteFoodNameReversedNullsLast: [
+			{
+				column: 'favorite_food.name',
+				nullable: true,
+				valuePath: 'favoriteFood.name',
+				direction: SortDirection.DescendingNullsLast,
+			},
+			{
+				column: 'first_name',
+				valuePath: 'firstName',
+				direction: SortDirection.Descending,
+			},
+			{
+				column: 'last_name',
+				valuePath: 'lastName',
+				direction: SortDirection.Descending,
+			},
+			{
+				column: 'users.id',
+				columnType: ColumnType.Integer,
+				valuePath: 'id',
+				direction: SortDirection.Descending,
+			},
+		],
 	};
 
 	getBaseQuery(): QueryBuilder<User> {
 		const qry = User.query();
-		if (
-			this.sort === 'byFavoriteFoodName' ||
-			this.sort === 'byFavoriteFoodNameReversed'
-		) {
+		if (this.sort.startsWith('byFavoriteFoodName')) {
 			qry.withGraphJoined('favoriteFood');
 		}
 		return qry;

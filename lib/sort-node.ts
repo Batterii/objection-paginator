@@ -1,6 +1,5 @@
 import { Model, OrderByDescriptor, QueryBuilder } from 'objection';
 import { ConcreteSortDescriptor } from './concrete-sort-descriptor';
-import { ConfigurationError } from './configuration-error';
 import { SortDirection } from './sort-descriptor';
 import { ValidationCase } from './get-error-class';
 import { isEmpty } from 'lodash';
@@ -46,9 +45,7 @@ export class SortNode {
 	constructor(descriptors: ConcreteSortDescriptor[]) {
 		const [ firstDescriptor ] = descriptors;
 		if (!firstDescriptor) {
-			throw new ConfigurationError(
-				'At least one sort descriptor is required',
-			);
+			throw new TypeError('At least one sort descriptor is required');
 		}
 		this.descriptor = firstDescriptor;
 		this.anyNullable = firstDescriptor.nullable;
@@ -110,8 +107,8 @@ export class SortNode {
 	 */
 	getOrderByDescriptors(): OrderByDescriptor[] {
 		const { descriptor, child } = this;
-		const { column, direction } = descriptor;
-		const result: OrderByDescriptor[] = [ { column, order: direction } ];
+		const { column, order } = descriptor;
+		const result: OrderByDescriptor[] = [ { column, order } ];
 		if (child) result.push(...child.getOrderByDescriptors());
 		return result;
 	}
@@ -145,9 +142,9 @@ export class SortNode {
 	 * @returns The ORDER BY terms in raw SQL.
 	 */
 	getOwnOrderByTerms(): string[] {
-		const { column, direction, nullable } = this.descriptor;
-		const terms = [ `${column} ${direction}` ];
-		if (nullable) terms.unshift(`(${column} is null) ${direction}`);
+		const { column, order, nullable, nullOrder } = this.descriptor;
+		const terms = [ `${column} ${order}` ];
+		if (nullable) terms.unshift(`(${column} is null) ${nullOrder}`);
 		return terms;
 	}
 
@@ -258,7 +255,7 @@ export class SortNode {
 		const { column, direction } = descriptor;
 		if (child) {
 			this.applyNullCursorValueWithChildren(qry, childValues);
-		} else if (direction === SortDirection.Ascending) {
+		} else if (direction !== SortDirection.Descending) {
 			qry.whereNull(column);
 		}
 	}
@@ -274,9 +271,7 @@ export class SortNode {
 	 * @param value - The value for the inequality filter.
 	 */
 	applyInequality(qry: QueryBuilder<Model>, value: any): void {
-		const { descriptor } = this;
-		const { column, nullable } = descriptor;
-		const operator = descriptor.getOperator();
+		const { column, operator, nullable } = this.descriptor;
 		qry.where(column, operator, value);
 		if (nullable) this.handleNulls(qry);
 	}
@@ -297,7 +292,7 @@ export class SortNode {
 	 */
 	handleNulls(qry: QueryBuilder<Model>): void {
 		const { column, direction } = this.descriptor;
-		if (direction === SortDirection.Ascending) qry.orWhereNull(column);
+		if (direction !== SortDirection.Descending) qry.orWhereNull(column);
 	}
 
 	/**
@@ -318,21 +313,14 @@ export class SortNode {
 	): void {
 		const { descriptor, child } = this as Required<SortNode>;
 		const { column, direction } = descriptor;
-		switch (direction) {
-			case SortDirection.Ascending:
-				qry.whereNull(column);
-				child.applyCursorValues(qry, childValues);
-				break;
-			case SortDirection.Descending:
-				qry.whereNotNull(column).orWhere((sub) => {
-					sub.whereNull(column);
-					child.applyCursorValues(sub, childValues);
-				});
-				break;
-			default:
-				throw new ConfigurationError(
-					`Unknown sort direction '${direction}'`,
-				);
+		if (direction === SortDirection.Descending) {
+			qry.whereNotNull(column).orWhere((sub) => {
+				sub.whereNull(column);
+				child.applyCursorValues(sub, childValues);
+			});
+		} else {
+			qry.whereNull(column);
+			child.applyCursorValues(qry, childValues);
 		}
 	}
 }

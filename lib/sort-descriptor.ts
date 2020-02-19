@@ -11,6 +11,14 @@ export enum SortDirection {
 	 * Indicates a descending sort.
 	 */
 	Descending = 'desc',
+
+	/**
+	 * Indicates a descending sort, but with nulls last.
+	 *
+	 * @remarks
+	 * This is the same as the descending sort unless the column is nullable.
+	 */
+	DescendingNullsLast = 'descnl',
 }
 
 /**

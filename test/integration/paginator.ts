@@ -518,7 +518,7 @@ describe('Paginator (Integration)', function() {
 		expect(remaining).to.equal(0);
 	});
 
-	it('supports ascending sorts with nullable related columns', async function() {
+	it('supports descending sorts with nullable related columns', async function() {
 		// Again, this is the same as the previous test, just in reverse.
 		const qry = new UserQuery({
 			sort: 'byFavoriteFoodNameReversed',
@@ -551,6 +551,42 @@ describe('Paginator (Integration)', function() {
 		expect(items).to.have.length(1);
 		expect(items[0].name).to.equal('Dude Bro');
 		expect(items[0].favoriteFood!.name).to.equal('Pizza');
+		expect(remaining).to.equal(0);
+	});
+
+	it('supports descending nulls last sorts', async function() {
+		// The previous test again, but with nulls last.
+		const qry = new UserQuery({
+			sort: 'byFavoriteFoodNameReversedNullsLast',
+			limit: 2,
+		});
+		let items: User[];
+		let remaining: number;
+		let cursor: string;
+
+		// First page.
+		({ items, remaining, cursor } = await qry.execute());
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Terd Ferguson');
+		expect(items[0].favoriteFood!.name).to.equal('Tacos');
+		expect(items[1].name).to.equal('Steve Ripberger');
+		expect(items[1].favoriteFood!.name).to.equal('Pizza');
+		expect(remaining).to.equal(3);
+
+		// Second page.
+		({ items, remaining, cursor } = await qry.execute(cursor));
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal('Dude Bro');
+		expect(items[0].favoriteFood!.name).to.equal('Pizza');
+		expect(items[1].name).to.equal('Terd McGee');
+		expect(items[1].favoriteFood).to.be.null;
+		expect(remaining).to.equal(1);
+
+		// Last page.
+		({ items, remaining } = await qry.execute(cursor));
+		expect(items).to.have.length(1);
+		expect(items[0].name).to.equal('Cool Guy');
+		expect(items[0].favoriteFood).to.be.null;
 		expect(remaining).to.equal(0);
 	});
 });

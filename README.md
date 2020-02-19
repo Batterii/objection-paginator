@@ -214,7 +214,16 @@ export class People extends Paginator<Person> {
 In case you are not using TypeScript and these enums aren't useful to you, they
 are implemented with string values.
 
-Sort directions are simple. Either 'asc' or 'desc' as in Objection.
+Sort directions match how they are defined in Objection and Knex, with one
+additional option:
+
+- 'asc' for an ascending sort.
+- 'desc' for descending sort.
+- 'descnl' for a descending nulls-last sort.
+
+This final sort direction option is effectively the same as a descending sort,
+unless your column is nullable. See the section on nullable columns for more
+information.
 
 Column types match column type names as defined in Knex. Supported ones
 include the following:
@@ -364,8 +373,10 @@ through the cursor validators, and also ensure they are handled properly within
 ORDER BY and WHERE clauses applied by the paginator.
 
 If, for example, we have a `height` field in our Person model, but we may or may
-not now the height of an individual person. We can account for this by adding
-a `nullable: true` to our sort descriptor for the height field:
+not know the height of an individual person. We can account for this by adding
+a `nullable: true` to our sort descriptor for the height field, and updating the
+sort direction to put nulls last. The reuslt will be people ordered tallest to
+shortest, with the people whose height we don't know at the end:
 
 ```ts
 import {
@@ -383,11 +394,12 @@ export class People extends Paginator<Person> {
 			'lastName',
 			{ column: 'id', columnType: ColumnType.Integer },
 		],
-		shortestFirst: [
+		tallestFirst: [
 			{
 				column: 'height',
 				columnType: ColumnType.Float,
 				nullable: true,
+				direction: SortDirection.DescendingNullsFirst,
 			}
 			'firstName',
 			'lastName',
@@ -402,12 +414,8 @@ export class People extends Paginator<Person> {
 ```
 
 This library explicitly specifies how to sort nulls, so regardless of what
-database you are using, nulls will occur *last* in an ascending sort, so all the
-people whose height we don't know will end up an the end of this query.
-
-Coversely, nulls will occur *first* in a *descending* sort. A feature will be
-added in a future release, however, which will allow you to specify a
-'nulls last' descending sort, if you need it.
+database you are using, nulls will occur last in an ascending sort, first in a
+descending sort, and of course last in a descending nulls-first sort.
 
 ### Nullable Relationships
 Nullable column support works even if the referenced column is from a different
@@ -522,7 +530,7 @@ export class PeopleWithFavoriteFoods extends Paginator<Person> {
 }
 ```
 
-There are more extensive examples of dealign with this problem in the
+There are more extensive examples of dealing with this problem in the
 integration tests in the repo for this project.
 
 

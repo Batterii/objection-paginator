@@ -6,7 +6,6 @@ import {
 } from './sort-descriptor';
 import { ValidationCase, getErrorClass } from './get-error-class';
 import { defaults, isBoolean, isFinite, isInteger, isString } from 'lodash';
-import { ConfigurationError } from './configuration-error';
 import { get as getPath } from 'object-path';
 
 /**
@@ -29,7 +28,7 @@ export class ConcreteSortDescriptor {
 	columnType: ColumnType;
 
 	/**
-	 * Indicates whether or not th ecolumn is nullable.
+	 * Indicates whether or not thee column is nullable.
 	 */
 	nullable: boolean;
 
@@ -54,37 +53,58 @@ export class ConcreteSortDescriptor {
 	 */
 	constructor(descriptor: SortDescriptor | string) {
 		if (isString(descriptor)) descriptor = { column: descriptor };
+
 		defaults(this, descriptor, {
 			columnType: ColumnType.String,
 			nullable: false,
 			direction: SortDirection.Ascending,
 			valuePath: descriptor.column,
 		});
+
+		if (!Object.values(ColumnType).includes(this.columnType)) {
+			throw new TypeError(`Unknown column type '${this.columnType}'`);
+		}
+
+		if (!Object.values(SortDirection).includes(this.direction)) {
+			throw new TypeError(`Unknown sort direction '${this.direction}'`);
+		}
 	}
 
 	/**
-	 * Gets the operator to use in a cursor filter for this column.
-	 * @returns - An inequality operator, either '>' or '<'.
+	 * Normalized sort order for non-null ORDER BY terms.
 	 */
-	getOperator(): string {
-		switch (this.direction) {
-			case SortDirection.Ascending:
-				return '>';
-			case SortDirection.Descending:
-				return '<';
-			default:
-				throw new ConfigurationError(
-					`Unknown sort direction '${this.direction}'`,
-				);
+	get order(): 'asc'|'desc' {
+		const { direction } = this;
+		if (direction === SortDirection.DescendingNullsLast) {
+			return SortDirection.Descending;
 		}
+		return direction;
+	}
+
+	/**
+	 * Normalized sort order for `is null` ORDER BY terms.
+	 */
+	get nullOrder(): 'asc'|'desc' {
+		const { direction } = this;
+		if (direction === SortDirection.DescendingNullsLast) {
+			return SortDirection.Ascending;
+		}
+		return direction;
+	}
+
+	/**
+	 * The inequality operator to use in a cursor filter for this column.
+	 */
+	get operator(): '>'|'<' {
+		return this.direction === SortDirection.Ascending ? '>' : '<';
 	}
 
 	/**
 	 * Checks if a given cursor value matches the column type.
 	 *
 	 * @remarks
-	 * This method simply returns true or false based on the check. It will only
-	 * throw if the user specified an unknown column type.
+	 * This method simply returns true or false based on the check. It will not
+	 * throw if the check fails.
 	 *
 	 * @param value - The value to check.
 	 * @returns `true` if the value matches, `false` otherwise.
@@ -100,9 +120,7 @@ export class ConcreteSortDescriptor {
 			case ColumnType.Boolean:
 				return isBoolean(value);
 			default:
-				throw new ConfigurationError(
-					`Unknown column type '${this.columnType}'`,
-				);
+				return false;
 		}
 	}
 

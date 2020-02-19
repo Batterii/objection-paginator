@@ -1,7 +1,6 @@
 import * as getErrorClassModule from '../../lib/get-error-class';
 import { ColumnType, SortDirection } from '../../lib/sort-descriptor';
 import { ConcreteSortDescriptor } from '../../lib/concrete-sort-descriptor';
-import { ConfigurationError } from '../../lib/configuration-error';
 import { ObjectionPaginatorError } from '../../lib/objection-paginator-error';
 import _ from 'lodash';
 import { expect } from 'chai';
@@ -13,8 +12,8 @@ type ValidationCase = getErrorClassModule.ValidationCase;
 
 describe('ConcreteSortDescriptor', function() {
 	const column = 'some column name';
-	const columnType = 'some column type' as ColumnType;
-	const direction = 'sort direction' as SortDirection;
+	const columnType = ColumnType.Boolean;
+	const direction = SortDirection.DescendingNullsLast;
 	const valuePath = 'value path';
 	const validate = () => true;
 	let descriptor: ConcreteSortDescriptor;
@@ -38,7 +37,7 @@ describe('ConcreteSortDescriptor', function() {
 		expect(descriptor.validate).to.equal(validate);
 	});
 
-	it('suppoers specifying true for nullable', function() {
+	it('supports specifying true for nullable', function() {
 		descriptor = new ConcreteSortDescriptor({ column, nullable: true });
 
 		expect(descriptor.nullable).to.be.true;
@@ -84,29 +83,85 @@ describe('ConcreteSortDescriptor', function() {
 		expect(descriptor.validate).to.be.undefined;
 	});
 
-	describe('#getOperator', function() {
+	it('throws if an unknown column type was specified', function() {
+		const unknown = 'unknown' as ColumnType;
+
+		expect(() => {
+			// eslint-disable-next-line no-new
+			new ConcreteSortDescriptor({ column, columnType: unknown });
+		}).to.throw(TypeError).that.includes({
+			message: 'Unknown column type \'unknown\'',
+		});
+	});
+
+	it('throws if an unknown sort direction was specified', function() {
+		const unknown = 'unknown' as SortDirection;
+
+		expect(() => {
+			// eslint-disable-next-line no-new
+			new ConcreteSortDescriptor({ column, direction: unknown });
+		}).to.throw(TypeError).that.includes({
+			message: 'Unknown sort direction \'unknown\'',
+		});
+	});
+
+	describe('@order', function() {
+		it('returns \'asc\' for ascending direction', function() {
+			descriptor.direction = SortDirection.Ascending;
+
+			expect(descriptor.order).to.equal('asc');
+		});
+
+		it('returns \'desc\' for ascending direction', function() {
+			descriptor.direction = SortDirection.Descending;
+
+			expect(descriptor.order).to.equal('desc');
+		});
+
+		it('returns \'desc\' for descending nulls last direction', function() {
+			descriptor.direction = SortDirection.DescendingNullsLast;
+
+			expect(descriptor.order).to.equal('desc');
+		});
+	});
+
+	describe('@nullOrder', function() {
+		it('returns \'asc\' for ascending direction', function() {
+			descriptor.direction = SortDirection.Ascending;
+
+			expect(descriptor.nullOrder).to.equal('asc');
+		});
+
+		it('returns \'desc\' for ascending direction', function() {
+			descriptor.direction = SortDirection.Descending;
+
+			expect(descriptor.nullOrder).to.equal('desc');
+		});
+
+		it('returns \'asc\' for descending nulls last direction', function() {
+			descriptor.direction = SortDirection.DescendingNullsLast;
+
+			expect(descriptor.nullOrder).to.equal('asc');
+		});
+	});
+
+	describe('@operator', function() {
 		it('returns \'>\' for ascending direction', function() {
 			descriptor.direction = SortDirection.Ascending;
 
-			expect(descriptor.getOperator()).to.equal('>');
+			expect(descriptor.operator).to.equal('>');
 		});
 
 		it('returns \'<\' for descending direction', function() {
 			descriptor.direction = SortDirection.Descending;
 
-			expect(descriptor.getOperator()).to.equal('<');
+			expect(descriptor.operator).to.equal('<');
 		});
 
-		it('throws for any other direction', function() {
-			descriptor.direction = 'other direction lol' as SortDirection;
+		it('returns \'<\' for descending nulls last direction', function() {
+			descriptor.direction = SortDirection.DescendingNullsLast;
 
-			expect(() => {
-				descriptor.getOperator();
-			}).to.throw(ConfigurationError).that.includes({
-				shortMessage: 'Unknown sort direction \'other direction lol\'',
-				cause: null,
-				info: null,
-			});
+			expect(descriptor.operator).to.equal('<');
 		});
 	});
 
@@ -154,16 +209,10 @@ describe('ConcreteSortDescriptor', function() {
 			expect(descriptor.checkCursorValue(value)).to.equal(isFiniteResult);
 		});
 
-		it('throws for any other columnType', function() {
+		it('returns false for any other column type', function() {
 			descriptor.columnType = 'other column type' as ColumnType;
 
-			expect(() => {
-				descriptor.checkCursorValue(value);
-			}).to.throw(ConfigurationError).that.includes({
-				shortMessage: 'Unknown column type \'other column type\'',
-				cause: null,
-				info: null,
-			});
+			expect(descriptor.checkCursorValue(value)).to.be.false;
 		});
 	});
 
