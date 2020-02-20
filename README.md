@@ -273,11 +273,11 @@ To do this, you may need to give your sort descriptors a `valuePath`, which is
 the dot-separated object path at which they can find their cursor values within
 your denormalized result objects. You also may need to specify table names in
 addition to column names, if you are joining in a table that has some shared
-column names.
+column names. Otherwise you'll end up with ambigious column name errors.
 
 The `valuePath` is actually always present, but it defaults to whatever you
 provide as the column name. If you need to specify a full `table.column`
-specifier, you will very likely have to update the `valuePath` as well.
+specifier, you may have to update the `valuePath` as well.
 
 If, for example, I have a Food model where each food has a unique integer id,
 and I keep track of people's favorite foods using a `favoriteFoodId` column,
@@ -365,6 +365,26 @@ export class PeopleWithFavoriteFoods extends Paginator<Person> {
 	}
 }
 ```
+
+## Concerning Snake Case Mappers
+If you are using Objection's Knex-level [snake case mappers][11], you can expect
+the column and table names in your sort descriptors to work seamlessly with
+those.
+
+If you are using the Objection-level mappers, however, you will need to specify
+using the exact identifier names as they appear in the database, as you would
+with any `orderBy` or `select` statement. Your model properties will be in
+camel case, of course, but this mismatch means that you will need to specify
+an explicit valuePath for every single sort descriptor with a column name
+consisting of more than one word.
+
+Features to deal with this are possible, but none are planned because at
+Batterii we simply never use the Objection-level mappers becuse the Knex-level
+ones are so much more consistent and therefore less confusing. If you feel like
+you really need them, though, and you find continually specifying the
+`valuePath` to be intolerable, feel free to raise it as an issue and we'll look
+into it.
+
 
 ## Nullable Columns
 If your sort specifies a column that might be null for a given record, you need
@@ -458,80 +478,6 @@ export class PeopleWithFavoriteFoods extends Paginator<Person> {
 	}
 }
 ```
-
-### Regarding Identifier Mappers
-It is common, when using Objection, to also use some kind of mapping mechanism
-to translate identifiers between database-idioms and JavaScript idioms, as
-described [here][12]. Normally, this will work perfectly fine when defining your
-Paginator sorts, but *if* you specify a nullable column within a sort? These
-mappings will no longer function within that sort.
-
-The reason for this is that Knex [does not currently support][13] specifying
-the handling of nulls using their `orderBy` query builder method. In order to
-implement the nullable column feature, I had to switch to raw SQL whenever a
-nullable column is specified, and of course identifier mappers provided either
-to Knex or to Objection will not work with raw SQL.
-
-Some potential features are planned to deal with this inconvenience, one of
-which is the issue within Knex linked above. In the meantime, whenever you
-include `nullable: true` for *any* column in a sort, the *entire* sort must use
-the exact database identifiers for both table and column names.
-
-If, for example, we were using Objection's snake case mappers so that
-identifiers are in snake case in the database, but camelCase in our TS/JS code,
-we'd need to modify the `PeopleWithFavoriteFoods` example above like so:
-
-```ts
-import {
-	ColumnType,
-	Paginator,
-	SortDirection,
-} from '@batterii/objection-paginator';
-import { Person } from '../models/person';
-import { QueryBuilder } from 'objection';
-
-export class PeopleWithFavoriteFoods extends Paginator<Person> {
-	static sorts = {
-		default: [
-			/*
-			 * Note the differences here. The table names and column names have
-			 * to be specified in camel case, but the valuePaths remain in
-			 * camel case. They need to be specified separately, for this
-			 * reason.
-			 */
-			{
-				column: 'favorite_food.name',
-				nullable: true,
-				valuePath: 'favoriteFood.name',
-			}
-			{ column: 'first_name', valuePath: 'firstName' },
-			{ column: 'last_name', valuePath: 'lastName' },
-
-			/*
-			 * This descriptor can remain the same, though, because `people`and
-			 * `id` are the same in both snake case and camel case.
-			 */
-			{
-				column: 'people.id',
-				columnType: ColumnType.Integer,
-				valuePath: 'id',
-			},
-		],
-	};
-
-	getBaseQuery(): QueryBuilder<User> {
-		/*
-		 * The join operation for `withGraphJoined` defaults to a left join, so
-		 * there is no need to specify. The favoriteFood for each person will be
-		 * loaded if known, and null if not known.
-		 */
-		return Person.query().withGraphJoined('favoriteFood');
-	}
-}
-```
-
-There are more extensive examples of dealing with this problem in the
-integration tests in the repo for this project.
 
 
 ## Paginator Arguments
@@ -750,7 +696,7 @@ performs one followed by the other.
 
 
 ## Error Handling
-This module makes use of [Nani][1] to define the errors it throws within an
+This module makes use of [Nani][10] to define the errors it throws within an
 easily-checked heirarchy. The errors it exposes are:
 
 - `ObjectionPaginatorError`: The base class of all other errors in this module,
@@ -775,6 +721,4 @@ easily-checked heirarchy. The errors it exposes are:
 [8]: https://vincit.github.io/objection.js/api/query-builder/eager-methods.html#withgraphjoined
 [9]: https://koajs.com/
 [10]: https://www.npmjs.com/package/nani
-[11]: https://www.xaprb.com/blog/2006/05/18/why-null-never-compares-false-to-anything-in-sql/
-[12]: https://vincit.github.io/objection.js/recipes/snake-case-to-camel-case-conversion.html
-[13]: https://github.com/knex/knex/issues/3667
+[11]: https://vincit.github.io/objection.js/recipes/snake-case-to-camel-case-conversion.html

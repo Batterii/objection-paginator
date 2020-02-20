@@ -4,8 +4,10 @@ import {
 	SortDirection,
 	ValidationFunction,
 } from './sort-descriptor';
+import { Model, QueryBuilder } from 'objection';
 import { ValidationCase, getErrorClass } from './get-error-class';
 import { defaults, isBoolean, isFinite, isInteger, isString } from 'lodash';
+import { Column } from './column';
 import { get as getPath } from 'object-path';
 
 /**
@@ -52,8 +54,10 @@ export class ConcreteSortDescriptor {
 	 * @param descriptor - The user-specified sort descriptor.
 	 */
 	constructor(descriptor: SortDescriptor | string) {
+		// Normalize shortcut descriptors.
 		if (isString(descriptor)) descriptor = { column: descriptor };
 
+		// Assign descriptor properties with defaults.
 		defaults(this, descriptor, {
 			columnType: ColumnType.String,
 			nullable: false,
@@ -61,10 +65,11 @@ export class ConcreteSortDescriptor {
 			valuePath: descriptor.column,
 		});
 
+		// Validate the instance.
+		Column.validate(this.column);
 		if (!Object.values(ColumnType).includes(this.columnType)) {
 			throw new TypeError(`Unknown column type '${this.columnType}'`);
 		}
-
 		if (!Object.values(SortDirection).includes(this.direction)) {
 			throw new TypeError(`Unknown sort direction '${this.direction}'`);
 		}
@@ -184,5 +189,28 @@ export class ConcreteSortDescriptor {
 		let value = getPath(entity, this.valuePath);
 		if (value === undefined) value = null;
 		return this.validateCursorValue(value, ValidationCase.Configuration);
+	}
+
+	/**
+	 * Gets the raw SQL identifier of the descriptor's column.
+	 *
+	 * @remarks
+	 * This is necessary due to Knex's lack of support for specifying the order
+	 * of nulls in its `orderBy` method. We have to use `orderByRaw` for any
+	 * query with a nullable sort descriptor, but `orderByRaw` breaks any
+	 * identifier mappers in place on the query builder.
+	 *
+	 * This method aims to invoke the provided query builder's mappers on the
+	 * descriptor's column, so that if any are present they will be applied to
+	 * the result of this function.
+	 *
+	 * This method does not change or invoke the provided query builder at all,
+	 * instead cloning it and doing its operations on the clone.
+	 *
+	 * @param qry - The query builder that may contain the needed mappers.
+	 * @returns The raw column identifier.
+	 */
+	getRawColumn(qry: QueryBuilder<Model>): string {
+		return Column.toRaw(this.column, qry);
 	}
 }

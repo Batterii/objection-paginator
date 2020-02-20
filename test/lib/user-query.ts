@@ -38,22 +38,20 @@ export class UserQuery extends Paginator<User> {
 		],
 		byFavoriteFoodId: [
 			{
-				column: 'favorite_food_id',
+				column: 'favoriteFoodId',
 				columnType: ColumnType.Integer,
 				nullable: true,
-				valuePath: 'favoriteFoodId',
 			},
-			{ column: 'first_name', valuePath: 'firstName' },
-			{ column: 'last_name', valuePath: 'lastName' },
+			'firstName',
+			'lastName',
 			{ column: 'id', columnType: ColumnType.Integer },
 		],
 		byFavoriteFoodIdReversed: [
 			{
-				column: 'favorite_food_id',
+				column: 'favoriteFoodId',
 				columnType: ColumnType.Integer,
 				nullable: true,
 				direction: SortDirection.Descending,
-				valuePath: 'favoriteFoodId',
 			},
 			{
 				column: 'first_name',
@@ -73,12 +71,11 @@ export class UserQuery extends Paginator<User> {
 		],
 		byFavoriteFoodName: [
 			{
-				column: 'favorite_food.name',
+				column: 'favoriteFood.name',
 				nullable: true,
-				valuePath: 'favoriteFood.name',
 			},
-			{ column: 'first_name', valuePath: 'firstName' },
-			{ column: 'last_name', valuePath: 'lastName' },
+			'firstName',
+			'lastName',
 			{
 				column: 'users.id',
 				columnType: ColumnType.Integer,
@@ -87,50 +84,44 @@ export class UserQuery extends Paginator<User> {
 		],
 		byFavoriteFoodNameReversed: [
 			{
-				column: 'favorite_food.name',
+				column: 'favoriteFood.name',
 				nullable: true,
-				valuePath: 'favoriteFood.name',
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'first_name',
-				valuePath: 'firstName',
+				column: 'firstName',
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'last_name',
-				valuePath: 'lastName',
+				column: 'lastName',
 				direction: SortDirection.Descending,
 			},
 			{
 				column: 'users.id',
 				columnType: ColumnType.Integer,
-				valuePath: 'id',
 				direction: SortDirection.Descending,
+				valuePath: 'id',
 			},
 		],
 		byFavoriteFoodNameReversedNullsLast: [
 			{
-				column: 'favorite_food.name',
+				column: 'favoriteFood.name',
 				nullable: true,
-				valuePath: 'favoriteFood.name',
 				direction: SortDirection.DescendingNullsLast,
 			},
 			{
-				column: 'first_name',
-				valuePath: 'firstName',
+				column: 'firstName',
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'last_name',
-				valuePath: 'lastName',
+				column: 'lastName',
 				direction: SortDirection.Descending,
 			},
 			{
 				column: 'users.id',
 				columnType: ColumnType.Integer,
-				valuePath: 'id',
 				direction: SortDirection.Descending,
+				valuePath: 'id',
 			},
 		],
 	};

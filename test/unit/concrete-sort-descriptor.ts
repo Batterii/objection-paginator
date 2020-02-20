@@ -1,5 +1,7 @@
 import * as getErrorClassModule from '../../lib/get-error-class';
 import { ColumnType, SortDirection } from '../../lib/sort-descriptor';
+import { Model, QueryBuilder } from 'objection';
+import { Column } from '../../lib/column';
 import { ConcreteSortDescriptor } from '../../lib/concrete-sort-descriptor';
 import { ObjectionPaginatorError } from '../../lib/objection-paginator-error';
 import _ from 'lodash';
@@ -11,7 +13,7 @@ const { ValidationCase } = getErrorClassModule;
 type ValidationCase = getErrorClassModule.ValidationCase;
 
 describe('ConcreteSortDescriptor', function() {
-	const column = 'some column name';
+	const column = 'column identifier';
 	const columnType = ColumnType.Boolean;
 	const direction = SortDirection.DescendingNullsLast;
 	const valuePath = 'value path';
@@ -19,6 +21,7 @@ describe('ConcreteSortDescriptor', function() {
 	let descriptor: ConcreteSortDescriptor;
 
 	beforeEach(function() {
+		sinon.stub(Column, 'validate').returnsArg(0);
 		descriptor = new ConcreteSortDescriptor({
 			column,
 			columnType,
@@ -81,6 +84,12 @@ describe('ConcreteSortDescriptor', function() {
 		expect(descriptor.direction).to.equal(SortDirection.Ascending);
 		expect(descriptor.valuePath).to.equal(column);
 		expect(descriptor.validate).to.be.undefined;
+	});
+
+	it('validates the column identifier', function() {
+		expect(Column.validate).to.be.calledOnce;
+		expect(Column.validate).to.be.calledOn(Column);
+		expect(Column.validate).to.be.calledWith(column);
 	});
 
 	it('throws if an unknown column type was specified', function() {
@@ -416,6 +425,29 @@ describe('ConcreteSortDescriptor', function() {
 				ValidationCase.Configuration,
 			);
 			expect(result).to.be.false;
+		});
+	});
+
+	describe('#getRawColumn', function() {
+		const rawColumn = 'raw column name';
+		let qry: QueryBuilder<Model>;
+		let toRaw: sinon.SinonStub;
+
+		beforeEach(function() {
+			qry = {} as QueryBuilder<Model>;
+			toRaw = sinon.stub(Column, 'toRaw').returns(rawColumn);
+		});
+
+		it('converts the column to raw, using the provided query builder', function() {
+			descriptor.getRawColumn(qry);
+
+			expect(toRaw).to.be.calledOnce;
+			expect(toRaw).to.be.calledOn(Column);
+			expect(toRaw).to.be.calledWith(column, sinon.match.same(qry));
+		});
+
+		it('returns the raw column', function() {
+			expect(descriptor.getRawColumn(qry)).to.equal(rawColumn);
 		});
 	});
 });

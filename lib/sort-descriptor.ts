@@ -99,21 +99,6 @@ export interface SortDescriptor {
 	/**
 	 * Set to true to indicate that the column is nullable in your database.
 	 * Defaults to false.
-	 *
-	 * @remarks
-	 * Knex's query builder does not support specifying how to handle nulls
-	 * using its `orderBy` method. Because of this, if any of your columns are
-	 * nullable, the ORDER BY clause for the entire sort must be built using raw
-	 * SQL.
-	 *
-	 * As with any raw SQL expression, this will disrupt any knex-level table
-	 * and column name mappers you may be using. Solutions for this problem are
-	 * being explored, but most will involve some kind of change to Knex. For
-	 * the time being, if you set nullable to true for any of a sort's columns,
-	 * *all* of the column names and table names in that sort must be specified
-	 * by their exact database names. This will likely cause you to have to
-	 * specify the `valuePath` as well, unless you are also using the exact same
-	 * names for your property names in your Objection models.
 	 */
 	nullable?: boolean;
 
@@ -127,7 +112,7 @@ export interface SortDescriptor {
 	 * from an Objection Model instance. Defaults to the column name.
 	 *
 	 * @remarks
-	 * Typically you will need to use this option when sorting on columns
+	 * Typically you will only need to use this option when sorting on columns
 	 * joined in through a relationship. It defaults to the column name, so you
 	 * don't usually need to specify it in other circumstances.
 	 *
@@ -169,8 +154,14 @@ export interface SortDescriptor {
 	 * export class UsersByFavoriteFood extends Paginator<User> {
 	 *     static sorts = {
 	 *         default: [
-	 *             // Note the use of explicit table names and valuePath here.
-	 *             { column: 'foods.name', valuePath: 'favoriteFood.name' },
+	 *             // Objection uses the relationship identifier as a table
+	 *             // alias, so we can disambiguate which name we're talking
+	 *             // about like so.
+	 *             'favoriteFood.name',
+	 *
+	 *             // We also need to disambiguate the name column from the
+	 *             // people table, but this causes the value path to not match
+	 *             // the column name, so we have to specify it explicitly here.
 	 *             { column: 'people.name', valuePath: 'name' },
 	 *         ],
 	 *     };

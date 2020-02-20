@@ -170,11 +170,14 @@ describe('SortNode', function() {
 				node.anyNullable = true;
 			});
 
-			it('gets the raw order by clause', function() {
+			it('gets the raw order by clause, passing the query builder', function() {
 				node.applyOrder(qry.builder);
 
 				expect(getOrderByClause).to.be.calledOnce;
 				expect(getOrderByClause).to.be.calledOn(node);
+				expect(getOrderByClause).to.be.calledWith(
+					sinon.match.same(qry.builder),
+				);
 			});
 
 			it('it applies the raw order by clause to the provided query builder', function() {
@@ -231,45 +234,51 @@ describe('SortNode', function() {
 		});
 	});
 
-	describe('getOrderByClause', function() {
+	describe('#getOrderByClause', function() {
 		let node: SortNode;
+		let qry: QueryBuilder<Model>;
 		let getOrderByTerms: sinon.SinonStub;
 
 		beforeEach(function() {
 			node = new SortNode([ {} as any ]);
+			qry = {} as QueryBuilder<Model>;
 			getOrderByTerms = sinon.stub(node, 'getOrderByTerms')
 				.returns([ 'foo', 'bar', 'baz' ]);
 		});
 
-		it('gets the order by terms for this node', function() {
-			node.getOrderByClause();
+		it('gets the order by terms for this node, passing the query builder', function() {
+			node.getOrderByClause(qry);
 
 			expect(getOrderByTerms).to.be.calledOnce;
 			expect(getOrderByTerms).to.be.calledOn(node);
+			expect(getOrderByTerms).to.be.calledWith(sinon.match.same(qry));
 		});
 
 		it('returns order by terms joined by commas and spaces', function() {
-			expect(node.getOrderByClause()).to.equal('foo, bar, baz');
+			expect(node.getOrderByClause(qry)).to.equal('foo, bar, baz');
 		});
 	});
 
 	describe('#getOrderByTerms', function() {
 		let descriptor: ConcreteSortDescriptor;
 		let node: SortNode;
+		let qry: QueryBuilder<Model>;
 		let getOwnOrderByTerms: sinon.SinonStub;
 
 		beforeEach(function() {
 			descriptor = {} as ConcreteSortDescriptor;
 			node = new SortNode([ descriptor ]);
+			qry = {} as QueryBuilder<Model>;
 			getOwnOrderByTerms = sinon.stub(node, 'getOwnOrderByTerms')
 				.returns([ 'foo', 'bar' ]);
 		});
 
-		it('returns the node\'s own order by terms', function() {
-			const result = node.getOrderByTerms();
+		it('returns the node\'s own order by terms, passing the query builder', function() {
+			const result = node.getOrderByTerms(qry);
 
 			expect(getOwnOrderByTerms).to.be.calledOnce;
 			expect(getOwnOrderByTerms).to.be.calledOn(node);
+			expect(getOwnOrderByTerms).to.be.calledWith(sinon.match.same(qry));
 			expect(result).to.deep.equal([ 'foo', 'bar' ]);
 		});
 
@@ -281,15 +290,18 @@ describe('SortNode', function() {
 				sinon.stub(child, 'getOrderByTerms').returns([ 'baz', 'qux' ]);
 			});
 
-			it('gets the order by terms of the child', function() {
-				node.getOrderByTerms();
+			it('gets the order by terms of the child, passing the query builder', function() {
+				node.getOrderByTerms(qry);
 
 				expect(child.getOrderByTerms).to.be.calledOnce;
 				expect(child.getOrderByTerms).to.be.calledOn(child);
+				expect(child.getOrderByTerms).to.be.calledWith(
+					sinon.match.same(qry),
+				);
 			});
 
 			it('appends child terms to the result', function() {
-				expect(node.getOrderByTerms()).to.deep.equal([
+				expect(node.getOrderByTerms(qry)).to.deep.equal([
 					'foo',
 					'bar',
 					'baz',
@@ -300,29 +312,47 @@ describe('SortNode', function() {
 	});
 
 	describe('#getOwnOrderByTerms', function() {
-		const column = 'column';
+		const rawColumn = 'raw_column';
 		const order = 'order' as 'asc'|'desc';
 		const nullOrder = 'nullOrder' as 'asc'|'desc';
-		let descriptor: ConcreteSortDescriptor;
+		let descriptor: sinon.SinonStubbedInstance<ConcreteSortDescriptor>;
 		let node: SortNode;
+		let qry: QueryBuilder<Model>;
 
 		beforeEach(function() {
-			descriptor = { column, order, nullOrder } as ConcreteSortDescriptor;
+			descriptor = sinon.createStubInstance(ConcreteSortDescriptor);
+			sinon.stub(descriptor, 'order').get(() => order);
+			sinon.stub(descriptor, 'nullOrder').get(() => nullOrder);
+			descriptor.getRawColumn.returns(rawColumn);
+
 			node = new SortNode([ descriptor ]);
+			qry = {} as QueryBuilder<Model>;
 		});
 
 		it('returns the first ORDER BY term in an array', function() {
-			expect(node.getOwnOrderByTerms()).to.deep.equal([
-				'column order',
-			]);
+			const result = node.getOwnOrderByTerms(qry);
+
+			expect(descriptor.getRawColumn).to.be.calledOnce;
+			expect(descriptor.getRawColumn).to.be.calledOn(descriptor);
+			expect(descriptor.getRawColumn).to.be.calledWith(
+				sinon.match.same(qry),
+			);
+			expect(result).to.deep.equal([ 'raw_column order' ]);
 		});
 
 		it('prepends `is null` term, if descriptor is nullable', function() {
 			descriptor.nullable = true;
 
-			expect(node.getOwnOrderByTerms()).to.deep.equal([
-				'(column is null) nullOrder',
-				'column order',
+			const result = node.getOwnOrderByTerms(qry);
+
+			expect(descriptor.getRawColumn).to.be.calledOnce;
+			expect(descriptor.getRawColumn).to.be.calledOn(descriptor);
+			expect(descriptor.getRawColumn).to.be.calledWith(
+				sinon.match.same(qry),
+			);
+			expect(result).to.deep.equal([
+				'(raw_column is null) nullOrder',
+				'raw_column order',
 			]);
 		});
 	});

@@ -93,7 +93,7 @@ export class SortNode {
 	 */
 	applyOrder(qry: QueryBuilder<Model>): void {
 		if (this.anyNullable) {
-			qry.orderByRaw(this.getOrderByClause());
+			qry.orderByRaw(this.getOrderByClause(qry));
 		} else {
 			qry.orderBy(this.getOrderByDescriptors());
 		}
@@ -117,17 +117,17 @@ export class SortNode {
 	 * Returns a raw ORDER BY clause for this node and all of its subsorts.
 	 * @returns The ORDER BY clause in raw SQL.
 	 */
-	getOrderByClause(): string {
-		return this.getOrderByTerms().join(', ');
+	getOrderByClause(qry: QueryBuilder<Model>): string {
+		return this.getOrderByTerms(qry).join(', ');
 	}
 
 	/**
 	 * Gets the raw ORDER BY terms for this node and all of its subsorts.
 	 * @returns The ORDER BY terms in raw SQL.
 	 */
-	getOrderByTerms(): string[] {
-		const terms = this.getOwnOrderByTerms();
-		if (this.child) terms.push(...this.child.getOrderByTerms());
+	getOrderByTerms(qry: QueryBuilder<Model>): string[] {
+		const terms = this.getOwnOrderByTerms(qry);
+		if (this.child) terms.push(...this.child.getOrderByTerms(qry));
 		return terms;
 	}
 
@@ -141,8 +141,10 @@ export class SortNode {
 	 *
 	 * @returns The ORDER BY terms in raw SQL.
 	 */
-	getOwnOrderByTerms(): string[] {
-		const { column, order, nullable, nullOrder } = this.descriptor;
+	getOwnOrderByTerms(qry: QueryBuilder<Model>): string[] {
+		const { descriptor } = this;
+		const column = descriptor.getRawColumn(qry);
+		const { order, nullable, nullOrder } = descriptor;
 		const terms = [ `${column} ${order}` ];
 		if (nullable) terms.unshift(`(${column} is null) ${nullOrder}`);
 		return terms;
