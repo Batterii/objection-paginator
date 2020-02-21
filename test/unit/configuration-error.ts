@@ -3,7 +3,7 @@ import { ObjectionPaginatorError } from '../../lib/objection-paginator-error';
 import { expect } from 'chai';
 
 describe('ConfigurationError', function() {
-	it('extends BatteriiPaginatedQueryError', function() {
+	it('extends ObjectionPaginatorError', function() {
 		expect(new ConfigurationError())
 			.to.be.an.instanceOf(ObjectionPaginatorError);
 	});

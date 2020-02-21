@@ -5,7 +5,7 @@ import { UnknownSortError } from '../../lib/unknown-sort-error';
 import { expect } from 'chai';
 
 describe('UnknownSortError', function() {
-	it('extends BatteriiPaginatedQueryError', function() {
+	it('extends ObjectionPaginatorError', function() {
 		expect(new UnknownSortError())
 			.to.be.an.instanceOf(ObjectionPaginatorError);
 	});
