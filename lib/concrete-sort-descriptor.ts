@@ -8,6 +8,7 @@ import { Model, QueryBuilder } from 'objection';
 import { ValidationCase, getErrorClass } from './get-error-class';
 import { defaults, isBoolean, isFinite, isInteger, isString } from 'lodash';
 import { Column } from './column';
+import { ConfigurationError } from './configuration-error';
 import { get as getPath } from 'object-path';
 
 /**
@@ -68,10 +69,14 @@ export class ConcreteSortDescriptor {
 		// Validate the instance.
 		Column.validate(this.column);
 		if (!Object.values(ColumnType).includes(this.columnType)) {
-			throw new TypeError(`Unknown column type '${this.columnType}'`);
+			throw new ConfigurationError(
+				`Unknown column type '${this.columnType}'`,
+			);
 		}
 		if (!Object.values(SortDirection).includes(this.direction)) {
-			throw new TypeError(`Unknown sort direction '${this.direction}'`);
+			throw new ConfigurationError(
+				`Unknown sort direction '${this.direction}'`,
+			);
 		}
 	}
 

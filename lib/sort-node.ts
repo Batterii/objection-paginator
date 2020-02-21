@@ -1,5 +1,6 @@
 import { Model, OrderByDescriptor, QueryBuilder } from 'objection';
 import { ConcreteSortDescriptor } from './concrete-sort-descriptor';
+import { ConfigurationError } from './configuration-error';
 import { SortDirection } from './sort-descriptor';
 import { ValidationCase } from './get-error-class';
 import { isEmpty } from 'lodash';
@@ -45,7 +46,9 @@ export class SortNode {
 	constructor(descriptors: ConcreteSortDescriptor[]) {
 		const [ firstDescriptor ] = descriptors;
 		if (!firstDescriptor) {
-			throw new TypeError('At least one sort descriptor is required');
+			throw new ConfigurationError(
+				'At least one sort descriptor is required',
+			);
 		}
 		this.descriptor = firstDescriptor;
 		this.anyNullable = firstDescriptor.nullable;

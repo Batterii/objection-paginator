@@ -5,6 +5,7 @@ import {
 	QueryBuilder,
 } from 'objection';
 import { ConcreteSortDescriptor } from '../../lib/concrete-sort-descriptor';
+import { ConfigurationError } from '../../lib/configuration-error';
 import { FakeQuery } from '@batterii/fake-query';
 import { SortDirection } from '../../lib/sort-descriptor';
 import { SortNode } from '../../lib/sort-node';
@@ -77,7 +78,7 @@ describe('SortNode', function() {
 	it('throws if no descriptors are provided', function() {
 		expect(() => {
 			new SortNode([]); // eslint-disable-line no-new
-		}).to.throw(TypeError).that.includes({
+		}).to.throw(ConfigurationError).that.includes({
 			message: 'At least one sort descriptor is required',
 		});
 	});

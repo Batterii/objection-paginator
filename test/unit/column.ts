@@ -1,6 +1,7 @@
 import { QueryBuilder as KnexQueryBuilder, Sql } from 'knex';
 import { Model, QueryBuilder } from 'objection';
 import { Column } from '../../lib/column';
+import { ConfigurationError } from '../../lib/configuration-error';
 import { FakeQuery } from '@batterii/fake-query';
 import { expect } from 'chai';
 import sinon from 'sinon';
@@ -32,32 +33,40 @@ describe('Column', function() {
 		it('throws if there are more than two terms', function() {
 			expect(() => {
 				Column.validate('foo.bar.baz');
-			}).to.throw(TypeError).that.includes({
+			}).to.throw(ConfigurationError).that.includes({
 				message: 'Invalid column identifier \'foo.bar.baz\'',
+				cause: null,
+				info: null,
 			});
 		});
 
 		it('throws if the column name is empty', function() {
 			expect(() => {
 				Column.validate('foo.');
-			}).to.throw(TypeError).that.includes({
+			}).to.throw(ConfigurationError).that.includes({
 				message: 'Invalid column identifier \'foo.\'',
+				cause: null,
+				info: null,
 			});
 		});
 
 		it('throws if the table name is empty', function() {
 			expect(() => {
 				Column.validate('.bar');
-			}).to.throw(TypeError).that.includes({
+			}).to.throw(ConfigurationError).that.includes({
 				message: 'Invalid column identifier \'.bar\'',
+				cause: null,
+				info: null,
 			});
 		});
 
 		it('throws for an empty string', function() {
 			expect(() => {
 				Column.validate('');
-			}).to.throw(TypeError).that.includes({
+			}).to.throw(ConfigurationError).that.includes({
 				message: 'Invalid column identifier \'\'',
+				cause: null,
+				info: null,
 			});
 		});
 	});

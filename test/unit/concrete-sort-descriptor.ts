@@ -3,6 +3,7 @@ import { ColumnType, SortDirection } from '../../lib/sort-descriptor';
 import { Model, QueryBuilder } from 'objection';
 import { Column } from '../../lib/column';
 import { ConcreteSortDescriptor } from '../../lib/concrete-sort-descriptor';
+import { ConfigurationError } from '../../lib/configuration-error';
 import { ObjectionPaginatorError } from '../../lib/objection-paginator-error';
 import _ from 'lodash';
 import { expect } from 'chai';
@@ -98,8 +99,10 @@ describe('ConcreteSortDescriptor', function() {
 		expect(() => {
 			// eslint-disable-next-line no-new
 			new ConcreteSortDescriptor({ column, columnType: unknown });
-		}).to.throw(TypeError).that.includes({
+		}).to.throw(ConfigurationError).that.includes({
 			message: 'Unknown column type \'unknown\'',
+			cause: null,
+			info: null,
 		});
 	});
 
@@ -109,8 +112,10 @@ describe('ConcreteSortDescriptor', function() {
 		expect(() => {
 			// eslint-disable-next-line no-new
 			new ConcreteSortDescriptor({ column, direction: unknown });
-		}).to.throw(TypeError).that.includes({
+		}).to.throw(ConfigurationError).that.includes({
 			message: 'Unknown sort direction \'unknown\'',
+			cause: null,
+			info: null,
 		});
 	});
 

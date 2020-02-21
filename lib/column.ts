@@ -1,4 +1,5 @@
 import { Model, QueryBuilder } from 'objection';
+import { ConfigurationError } from './configuration-error';
 
 /**
  * An internal utility class for performing operations on user-provided column
@@ -87,7 +88,7 @@ export class Column {
 	 */
 	static validate(str: string): string {
 		if (this._columnPattern.test(str)) return str;
-		throw new TypeError(`Invalid column identifier '${str}'`);
+		throw new ConfigurationError(`Invalid column identifier '${str}'`);
 	}
 
 	/**
