@@ -2,8 +2,14 @@
 	"name": "objection-paginator",
 	"version": "0.5.0",
 	"description": "Paginated queries for Objection.js",
+	"keywords": [
+		"objection",
+		"pagination",
+		"cursor",
+		"keyset"
+	],
 	"author": "Batterii, LLC",
-	"license": "UNLICENSED",
+	"license": "MIT",
 	"repository": "github:Batterii/objection-paginator",
 	"files": [
 		"dist/lib",
