@@ -107,7 +107,7 @@ export interface PaginatorConstructor<TModel extends Model, TArgs = undefined> {
  * unique, while the combination of firstName and lastName is not:
  *
  * ```ts
- * import { Paginator } from '@batterii/objection-paginator';
+ * import { Paginator } from 'objection-paginator';
  * import { Person } from '../models/person';
  * import { QueryBuilder } from 'objection';
  *

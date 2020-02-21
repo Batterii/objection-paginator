@@ -148,7 +148,7 @@ export interface SortDescriptor {
 	 * food's name, then by their own name, like so:
 	 *
 	 * ```ts
-	 * import { Paginator } from '@batterii/objection-paginator';
+	 * import { Paginator } from 'objection-paginator';
 	 * import { User } from '../models/user;
 	 *
 	 * export class UsersByFavoriteFood extends Paginator<User> {

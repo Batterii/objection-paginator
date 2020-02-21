@@ -1,4 +1,4 @@
-# @batterii/objection-paginator
+# objection-paginator
 Object-oriented, value-based pagination for [Objection.js][1].
 
 
@@ -45,7 +45,7 @@ a paginated query by inheriting from a class. In this case, you use the
 Paginator class, like so:
 
 ```ts
-import { Paginator } from '@batterii/objection-paginator';
+import { Paginator } from 'objection-paginator';
 import { Person } from '../models/person';
 import { QueryBuilder } from 'objection';
 
@@ -110,7 +110,7 @@ static `::getPage` method, which is essentially shorthand for the entire
 operation:
 
 ```js
-import { Page } from '@batterii/objection-paginator';
+import { Page } from 'objection-paginator';
 import { People } from '../paginators/people';
 import { Person } from '../models/person';
 
@@ -140,7 +140,7 @@ clients to specify alternate ways of sorting through the same dataset. Just
 include them in your static `sorts` property:
 
 ```ts
-import { Paginator } from '@batterii/objection-paginator';
+import { Paginator } from 'objection-paginator';
 import { Person } from '../models/person';
 import { QueryBuilder } from 'objection';
 
@@ -182,7 +182,7 @@ import {
 	ColumnType, // You'll use this enum to specify column types...
 	Paginator,
 	SortDirection, // ... and this enum to specify sort directions.
-} from '@batterii/objection-paginator';
+} from 'objection-paginator';
 import { Person } from '../models/person';
 import { QueryBuilder } from 'objection';
 
@@ -318,7 +318,7 @@ import {
 	ColumnType,
 	Paginator,
 	SortDirection,
-} from '@batterii/objection-paginator';
+} from 'objection-paginator';
 import { Person } from '../models/person';
 import { QueryBuilder } from 'objection';
 
@@ -403,7 +403,7 @@ import {
 	ColumnType,
 	Paginator,
 	SortDirection,
-} from '@batterii/objection-paginator';
+} from 'objection-paginator';
 import { Person } from '../models/person';
 import { QueryBuilder } from 'objection';
 
@@ -447,7 +447,7 @@ import {
 	ColumnType,
 	Paginator,
 	SortDirection,
-} from '@batterii/objection-paginator';
+} from 'objection-paginator';
 import { Person } from '../models/person';
 import { QueryBuilder } from 'objection';
 
@@ -493,7 +493,7 @@ interface for your arguments, and both the Paginator constructor and the static
 Provided args will be availble as `this.args` in your `getBaseQuery` method:
 
 ```ts
-import { ColumnType, Paginator } from '@batterii/objection-paginator';
+import { ColumnType, Paginator } from 'objection-paginator';
 import { Person } from '../models/person';
 import { QueryBuilder } from 'objection';
 
@@ -549,7 +549,7 @@ If you're using an API framework like [Koa][9], you might want to pass the
 not based on the currently logged-in user.
 
 ```ts
-import { ColumnType, Page, Paginator } from '@batterii/objection-paginator';
+import { ColumnType, Page, Paginator } from 'objection-paginator';
 import { Person } from '../models/person';
 import { QueryBuilder } from 'objection';
 import { Context } from '../path/to/my/context/typings';
@@ -652,7 +652,7 @@ import {
 	Page,
 	Paginator,
 	PaginatorOptions,
-} from '@batterii/objection-paginator';
+} from 'objection-paginator';
 import { Context } from '../path/to/my/context/typings';
 import { Model } from 'objection';
 
