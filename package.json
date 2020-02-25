@@ -11,6 +11,10 @@
 	"author": "Batterii, LLC",
 	"license": "MIT",
 	"repository": "github:Batterii/objection-paginator",
+	"engines": {
+		"node": ">=8.6",
+		"npm": ">=5.3"
+	},
 	"files": [
 		"dist/lib",
 		"dist/types"
