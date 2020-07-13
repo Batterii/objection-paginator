@@ -98,10 +98,8 @@ describe("Column", function() {
 	});
 
 	describe("::extractFromSql", function() {
-		const sql = "select `foo` from `bar`";
-
-		it("creates an instance from a simple Knex SQL string", function() {
-			const result = Column.extractFromSql(sql);
+		it("creates an instance from a simple Knex SQL string with double-quoted identfiers", function() {
+			const result = Column.extractFromSql("select \"foo\" from \"bar\"");
 
 			expect(result).to.be.an.instanceOf(Column);
 			expect(result!.columnName).to.equal("foo");
@@ -109,14 +107,38 @@ describe("Column", function() {
 		});
 
 		it("omits the table name from the result, if specified", function() {
-			const result = Column.extractFromSql(sql, true);
+			const result = Column.extractFromSql("select \"foo\" from \"bar\"", true);
 
 			expect(result).to.be.an.instanceOf(Column);
 			expect(result!.columnName).to.equal("foo");
 			expect(result!.tableName).to.be.undefined;
 		});
 
-		it("returns null if the SQL string does not match the expected format", function() {
+		it("supports backtick-quoted identifiers", function() {
+			const result = Column.extractFromSql("select `foo` from `bar`");
+
+			expect(result).to.be.an.instanceOf(Column);
+			expect(result!.columnName).to.equal("foo");
+			expect(result!.tableName).to.equal("bar");
+		});
+
+		it("supports backticks in double-quoted identifiers", function() {
+			const result = Column.extractFromSql("select \"fo`o\" from \"b`ar\"");
+
+			expect(result).to.be.an.instanceOf(Column);
+			expect(result!.columnName).to.equal("fo`o");
+			expect(result!.tableName).to.equal("b`ar");
+		});
+
+		it("supports double quotes in backtick-quoted identifiers", function() {
+			const result = Column.extractFromSql("select `f\"oo` from `ba\"r`");
+
+			expect(result).to.be.an.instanceOf(Column);
+			expect(result!.columnName).to.equal("f\"oo");
+			expect(result!.tableName).to.equal("ba\"r");
+		});
+
+		it("returns null if the SQL string does not match any expected format", function() {
 			const result = Column.extractFromSql("select foo from bar");
 
 			expect(result).to.be.null;

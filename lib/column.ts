@@ -33,15 +33,11 @@ export class Column {
 	 * Used to extract a mapped column and table name from a sql string.
 	 *
 	 * @remarks
-	 * The backticks and casing are exactly the same as Knex outputs here,
-	 * though these of course are not part of the SQL standard.
-	 *
-	 * This pattern will need to be updated if Knex ever changes the
-	 * intermediate SQL strings it outputs before normalizing to whatever
-	 * specific database you're using, but this is unlikely since it would be a
-	 * massively breaking change.
+	 * The format-- including casing-- is exactly the same as what Knex outputs. Table and column
+	 * name delimiters will either be double quotes or backticks depending on the database being
+	 * used, so this pattern supports both.
 	 */
-	private static _sqlPattern = /^select `(.*?)` from `(.*?)`$/;
+	private static _sqlPattern = /^select ["`](.*?)["`] from ["`](.*?)["`]$/;
 
 	/**
 	 * The name of the referenced database column.
