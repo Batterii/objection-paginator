@@ -1,4 +1,4 @@
-import { ObjectionPaginatorError } from './objection-paginator-error';
+import {ObjectionPaginatorError} from "./objection-paginator-error";
 
 /**
  * Error class indicating that a sort name was specified which does not exist
@@ -12,8 +12,8 @@ import { ObjectionPaginatorError } from './objection-paginator-error';
  */
 export class UnknownSortError extends ObjectionPaginatorError {
 	static getDefaultMessage(info?: Record<string, any>): string {
-		let msg = 'Unknown sort';
-		if (info && 'sort' in info) msg += `: '${info.sort}'`;
+		let msg = "Unknown sort";
+		if (info && "sort" in info) msg += `: '${info.sort}'`;
 		return msg;
 	}
 }

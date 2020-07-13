@@ -1,7 +1,7 @@
-import { Model } from 'objection';
+import {Model} from "objection";
 
 export class Food extends Model {
-	static tableName = 'foods';
+	static tableName = "foods";
 
 	id: number;
 	name: string;

@@ -1,13 +1,13 @@
-import { Model } from 'objection';
-import { User } from './user';
+import {Model} from "objection";
+import {User} from "./user";
 
 export enum MemberRole {
-	RegularMember = 'regularMember',
-	Manager = 'manager',
+	RegularMember = "regularMember",
+	Manager = "manager",
 }
 
 export class Membership extends Model {
-	static tableName = 'memberships';
+	static tableName = "memberships";
 
 	id: number;
 	projectId: number;

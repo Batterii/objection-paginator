@@ -1,5 +1,5 @@
-import { Model, QueryBuilder } from 'objection';
-import { ConfigurationError } from './configuration-error';
+import {Model, QueryBuilder} from "objection";
+import {ConfigurationError} from "./configuration-error";
 
 /**
  * An internal utility class for performing operations on user-provided column
@@ -103,7 +103,7 @@ export class Column {
 	 * @return The created instance.
 	 */
 	static parse(str: string): Column {
-		const [ columnName, tableName ] = str.split('.').reverse();
+		const [columnName, tableName] = str.split(".").reverse();
 		return new this(columnName, tableName);
 	}
 
@@ -126,7 +126,7 @@ export class Column {
 	static extractFromSql(sql: string, omitTableName = false): Column|null {
 		const match = this._sqlPattern.exec(sql);
 		if (!match) return null;
-		const [ , columnName, tableName ] = match;
+		const [, columnName, tableName] = match;
 		if (omitTableName) return new this(columnName);
 		return new this(columnName, tableName);
 	}
@@ -170,7 +170,7 @@ export class Column {
 	getMappingQuery(qry: QueryBuilder<Model>): QueryBuilder<Model> {
 		return qry.clone().clear(/.*/)
 			.select(this.columnName)
-			.from(this.tableName || 'some_table');
+			.from(this.tableName || "some_table");
 	}
 
 	/**
@@ -200,8 +200,8 @@ export class Column {
 	 * @returns The serialized Column.
 	 */
 	serialize(): string {
-		const terms = [ this.columnName ];
+		const terms = [this.columnName];
 		if (this.tableName) terms.unshift(this.tableName);
-		return terms.join('.');
+		return terms.join(".");
 	}
 }

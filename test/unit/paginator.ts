@@ -1,14 +1,14 @@
-import { GetPageOptions, Page, Paginator } from '../../lib/paginator';
-import { Model, QueryBuilder } from 'objection';
-import { Cursor } from '../../lib/cursor';
-import { FakeQuery } from '@batterii/fake-query';
-import { InvalidCursorError } from '../../lib/invalid-cursor-error';
-import { SortNode } from '../../lib/sort-node';
-import { UnknownSortError } from '../../lib/unknown-sort-error';
-import _ from 'lodash';
-import { createSortNode } from '../../lib/create-sort-node';
-import { expect } from 'chai';
-import sinon from 'sinon';
+import {GetPageOptions, Page, Paginator} from "../../lib/paginator";
+import {Model, QueryBuilder} from "objection";
+import {Cursor} from "../../lib/cursor";
+import {FakeQuery} from "@batterii/fake-query";
+import {InvalidCursorError} from "../../lib/invalid-cursor-error";
+import {SortNode} from "../../lib/sort-node";
+import {UnknownSortError} from "../../lib/unknown-sort-error";
+import _ from "lodash";
+import {createSortNode} from "../../lib/create-sort-node";
+import {expect} from "chai";
+import sinon from "sinon";
 
 class TestModel extends Model {}
 
@@ -26,53 +26,53 @@ interface OtherPaginatorArgs {
 }
 
 class OtherPaginator extends Paginator<TestModel, OtherPaginatorArgs> {
-	static queryName = 'Other';
+	static queryName = "Other";
 
 	getBaseQuery(): QueryBuilder<TestModel> {
 		return {} as QueryBuilder<TestModel>;
 	}
 }
 
-describe('Paginator', function() {
-	it('stores provided limit', function() {
-		const paginator = new TestPaginator({ limit: 42, sort: 'some sort' });
+describe("Paginator", function() {
+	it("stores provided limit", function() {
+		const paginator = new TestPaginator({limit: 42, sort: "some sort"});
 
 		expect(paginator.limit).to.equal(42);
 	});
 
-	it('stores provided sort', function() {
-		const paginator = new TestPaginator({ limit: 42, sort: 'some sort' });
+	it("stores provided sort", function() {
+		const paginator = new TestPaginator({limit: 42, sort: "some sort"});
 
-		expect(paginator.sort).to.equal('some sort');
+		expect(paginator.sort).to.equal("some sort");
 	});
 
-	it('defaults to 1000 limit', function() {
-		const paginator = new TestPaginator({ sort: 'some sort' });
+	it("defaults to 1000 limit", function() {
+		const paginator = new TestPaginator({sort: "some sort"});
 
 		expect(paginator.limit).to.equal(1000);
 	});
 
-	it('defaults to \'default\' sort', function() {
-		const paginator = new TestPaginator({ limit: 42 });
+	it("defaults to 'default' sort", function() {
+		const paginator = new TestPaginator({limit: 42});
 
-		expect(paginator.sort).to.equal('default');
+		expect(paginator.sort).to.equal("default");
 	});
 
-	it('has undefined args normally', function() {
-		const paginator = new TestPaginator({ limit: 42, sort: 'some sort' });
+	it("has undefined args normally", function() {
+		const paginator = new TestPaginator({limit: 42, sort: "some sort"});
 
 		expect(paginator.args).to.be.undefined;
 	});
 
 
-	it('allows specifying required args in type param', function() {
-		const args = { foo: 'baz', bar: 'qux' };
+	it("allows specifying required args in type param", function() {
+		const args = {foo: "baz", bar: "qux"};
 		const paginator = new OtherPaginator({}, args);
 
 		expect(paginator.args).to.equal(args);
 	});
 
-	it('prevents changing of limit after creation', function() {
+	it("prevents changing of limit after creation", function() {
 		const paginator = new TestPaginator();
 
 		expect(() => {
@@ -80,41 +80,41 @@ describe('Paginator', function() {
 		}).to.throw(TypeError);
 	});
 
-	it('prevents changing of sort after creation', function() {
+	it("prevents changing of sort after creation", function() {
 		const paginator = new TestPaginator();
 
 		expect(() => {
-			(paginator as any).sort = 'some other sort';
+			(paginator as any).sort = "some other sort";
 		}).to.throw(TypeError);
 	});
 
-	it('allows assiging over args after creation', function() {
-		const paginator = new OtherPaginator({}, { foo: 'baz', bar: 'qux' });
+	it("allows assiging over args after creation", function() {
+		const paginator = new OtherPaginator({}, {foo: "baz", bar: "qux"});
 
-		paginator.args = { foo: 'omg', bar: 'wow' };
+		paginator.args = {foo: "omg", bar: "wow"};
 	});
 
-	it('defines limit, sort, and args as enumerable', function() {
+	it("defines limit, sort, and args as enumerable", function() {
 		const paginator = new TestPaginator();
 
-		expect(paginator).to.have.keys([ 'limit', 'sort', 'args' ]);
+		expect(paginator).to.have.keys(["limit", "sort", "args"]);
 	});
 
-	describe('::getPage', function() {
+	describe("::getPage", function() {
 		const limit = 42;
-		const sort = 'some sort name';
-		const cursor = 'some cursor string';
+		const sort = "some sort name";
+		const cursor = "some cursor string";
 		let options: GetPageOptions;
 		let page: Page<TestModel>;
 		let execute: sinon.SinonStub;
 
 		beforeEach(function() {
-			options = { limit, sort, cursor };
+			options = {limit, sort, cursor};
 			page = {} as Page<TestModel>;
-			execute = sinon.stub(Paginator.prototype, 'execute').resolves(page);
+			execute = sinon.stub(Paginator.prototype, "execute").resolves(page);
 		});
 
-		it('executes an instance with the provided cursor', async function() {
+		it("executes an instance with the provided cursor", async function() {
 			const result = await TestPaginator.getPage(options);
 
 			expect(execute).to.be.calledOnce;
@@ -125,7 +125,7 @@ describe('Paginator', function() {
 			expect(result).to.equal(page);
 		});
 
-		it('creates the instance with the provided limit and sort', async function() {
+		it("creates the instance with the provided limit and sort", async function() {
 			await TestPaginator.getPage(options);
 			const paginator = execute.firstCall.thisValue;
 
@@ -133,7 +133,7 @@ describe('Paginator', function() {
 			expect(paginator.sort).to.equal(sort);
 		});
 
-		it('supports omitted options', async function() {
+		it("supports omitted options", async function() {
 			const result = await TestPaginator.getPage();
 
 			expect(execute).to.be.calledOnce;
@@ -144,14 +144,14 @@ describe('Paginator', function() {
 			expect(result).to.equal(page);
 		});
 
-		context('required args specified in type params', function() {
+		context("required args specified in type params", function() {
 			let args: OtherPaginatorArgs;
 
 			beforeEach(function() {
 				args = {} as OtherPaginatorArgs;
 			});
 
-			it('accepts the required args', async function() {
+			it("accepts the required args", async function() {
 				const result = await OtherPaginator.getPage(options, args);
 
 				expect(execute).to.be.calledOnce;
@@ -162,7 +162,7 @@ describe('Paginator', function() {
 				expect(result).to.equal(page);
 			});
 
-			it('passes the args to the instance', async function() {
+			it("passes the args to the instance", async function() {
 				await OtherPaginator.getPage(options, args);
 				const paginator = execute.firstCall.thisValue;
 
@@ -173,27 +173,27 @@ describe('Paginator', function() {
 		});
 	});
 
-	describe('::_getQueryName', function() {
-		it('returns the constructor name', function() {
+	describe("::_getQueryName", function() {
+		it("returns the constructor name", function() {
 			expect((TestPaginator as any)._getQueryName())
-				.to.equal('TestPaginator');
+				.to.equal("TestPaginator");
 		});
 
-		it('can be overriden with queryName property', function() {
-			expect((OtherPaginator as any)._getQueryName()).to.equal('Other');
+		it("can be overriden with queryName property", function() {
+			expect((OtherPaginator as any)._getQueryName()).to.equal("Other");
 		});
 	});
 
-	describe('::_createSortNodes', function() {
+	describe("::_createSortNodes", function() {
 		let sortNodes: Record<string, SortNode>;
 		let mapValues: sinon.SinonStub;
 
 		beforeEach(function() {
 			sortNodes = {};
-			mapValues = sinon.stub(_, 'mapValues').returns(sortNodes);
+			mapValues = sinon.stub(_, "mapValues").returns(sortNodes);
 		});
 
-		it('creates sort nodes from sorts property values', function() {
+		it("creates sort nodes from sorts property values", function() {
 			(TestPaginator as any)._createSortNodes();
 
 			expect(mapValues).to.be.calledOnce;
@@ -203,12 +203,12 @@ describe('Paginator', function() {
 			);
 		});
 
-		it('returns the created sort nodes', function() {
+		it("returns the created sort nodes", function() {
 			expect((TestPaginator as any)._createSortNodes())
 				.to.equal(sortNodes);
 		});
 
-		it('simply returns an empty object if there is no sorts property', function() {
+		it("simply returns an empty object if there is no sorts property", function() {
 			const result = (OtherPaginator as any)._createSortNodes();
 
 			expect(mapValues).to.not.be.called;
@@ -216,7 +216,7 @@ describe('Paginator', function() {
 		});
 	});
 
-	describe('::_getSortNodes', function() {
+	describe("::_getSortNodes", function() {
 		let sortNodes: Record<string, SortNode>;
 		let createSortNodes: sinon.SinonStub;
 
@@ -224,7 +224,7 @@ describe('Paginator', function() {
 			sortNodes = {};
 			createSortNodes = sinon.stub(
 				TestPaginator as any,
-				'_createSortNodes',
+				"_createSortNodes",
 			).returns(sortNodes);
 		});
 
@@ -232,24 +232,24 @@ describe('Paginator', function() {
 			delete (TestPaginator as any)._sortNodes;
 		});
 
-		it('creates sort nodes, if they do not exist', function() {
+		it("creates sort nodes, if they do not exist", function() {
 			(TestPaginator as any)._getSortNodes();
 
 			expect(createSortNodes).to.be.calledOnce;
 			expect(createSortNodes).to.be.calledOn(TestPaginator);
 		});
 
-		it('stores the created sort nodes', function() {
+		it("stores the created sort nodes", function() {
 			(TestPaginator as any)._getSortNodes();
 
 			expect((TestPaginator as any)._sortNodes).to.equal(sortNodes);
 		});
 
-		it('returns the created sort nodes', function() {
+		it("returns the created sort nodes", function() {
 			expect((TestPaginator as any)._getSortNodes()).to.equal(sortNodes);
 		});
 
-		it('returns stored sort nodes, if they already exist', function() {
+		it("returns stored sort nodes, if they already exist", function() {
 			(TestPaginator as any)._sortNodes = sortNodes;
 
 			const result = (TestPaginator as any)._getSortNodes();
@@ -259,10 +259,10 @@ describe('Paginator', function() {
 		});
 	});
 
-	describe('#execute', function() {
-		const cursor = 'original cursor string';
-		const newCursor = 'new cursor string';
-		const blankCursor = 'blank cursor string';
+	describe("#execute", function() {
+		const cursor = "original cursor string";
+		const newCursor = "new cursor string";
+		const blankCursor = "blank cursor string";
 		const remainingCount = 101;
 		let paginator: TestPaginator;
 		let items: TestModel[];
@@ -276,24 +276,24 @@ describe('Paginator', function() {
 
 			items = _.times(3, () => ({} as TestModel));
 			qry = new FakeQuery().resolves(items);
-			getQuery = sinon.stub(paginator as any, '_getQuery')
+			getQuery = sinon.stub(paginator as any, "_getQuery")
 				.returns(qry.builder);
 
 			getRemainingCount = sinon.stub(
 				paginator as any,
-				'_getRemainingCount',
+				"_getRemainingCount",
 			).returns(remainingCount);
 
 			createCursorString = sinon.stub(
 				paginator as any,
-				'_createCursorString',
+				"_createCursorString",
 			);
 			createCursorString
 				.withArgs(sinon.match.same(items[2])).returns(newCursor)
 				.withArgs().returns(blankCursor);
 		});
 
-		it('gets the query builder to execute', async function() {
+		it("gets the query builder to execute", async function() {
 			await paginator.execute(cursor);
 
 			expect(getQuery).to.be.calledOnce;
@@ -301,13 +301,13 @@ describe('Paginator', function() {
 			expect(getQuery).to.be.calledWith(cursor);
 		});
 
-		it('executes the query builder with no further modification', async function() {
+		it("executes the query builder with no further modification", async function() {
 			await paginator.execute(cursor);
 
 			expect(qry.stubNames).to.be.empty;
 		});
 
-		it('gets the remaining count, using the builder and item count', async function() {
+		it("gets the remaining count, using the builder and item count", async function() {
 			await paginator.execute(cursor);
 
 			expect(getRemainingCount).to.be.calledOnce;
@@ -318,7 +318,7 @@ describe('Paginator', function() {
 			);
 		});
 
-		it('creates a cursor string from the last item', async function() {
+		it("creates a cursor string from the last item", async function() {
 			await paginator.execute(cursor);
 
 			expect(createCursorString).to.be.calledOnce;
@@ -328,34 +328,34 @@ describe('Paginator', function() {
 			);
 		});
 
-		it('resolves with items, remaining count, and new cursor', async function() {
+		it("resolves with items, remaining count, and new cursor", async function() {
 			const result = await paginator.execute(cursor);
 
 			expect(result).to.be.an.instanceOf(Object);
-			expect(result).to.have.keys([ 'items', 'remaining', 'cursor' ]);
+			expect(result).to.have.keys(["items", "remaining", "cursor"]);
 			expect(result.items).to.equal(items);
 			expect(result.remaining).to.equal(remainingCount);
 			expect(result.cursor).to.equal(newCursor);
 		});
 
-		context('no items were found', function() {
+		context("no items were found", function() {
 			beforeEach(function() {
 				qry.resolves([]);
 			});
 
-			it('skips remaining count and resolves with the original cursor', async function() {
+			it("skips remaining count and resolves with the original cursor", async function() {
 				const result = await paginator.execute(cursor);
 
 				expect(getRemainingCount).to.not.be.called;
 				expect(createCursorString).to.not.be.called;
 				expect(result).to.be.an.instanceOf(Object);
-				expect(result).to.have.keys([ 'items', 'remaining', 'cursor' ]);
+				expect(result).to.have.keys(["items", "remaining", "cursor"]);
 				expect(result.items).to.be.empty;
 				expect(result.remaining).to.equal(0);
 				expect(result.cursor).to.equal(cursor);
 			});
 
-			it('creates and resolves with a blank cursor, if none was provided', async function() {
+			it("creates and resolves with a blank cursor, if none was provided", async function() {
 				qry.resolves([]);
 
 				const result = await paginator.execute();
@@ -365,7 +365,7 @@ describe('Paginator', function() {
 				expect(createCursorString).to.be.calledOn(paginator);
 				expect(createCursorString).to.be.calledWithExactly();
 				expect(result).to.be.an.instanceOf(Object);
-				expect(result).to.have.keys([ 'items', 'remaining', 'cursor' ]);
+				expect(result).to.have.keys(["items", "remaining", "cursor"]);
 				expect(result.items).to.be.empty;
 				expect(result.remaining).to.equal(0);
 				expect(result.cursor).to.equal(blankCursor);
@@ -373,33 +373,33 @@ describe('Paginator', function() {
 		});
 	});
 
-	describe('#_getSortNode', function() {
+	describe("#_getSortNode", function() {
 		let paginator: TestPaginator;
 		let sortNode: SortNode;
 		let sortNodes: Record<string, SortNode>;
 		let getSortNodes: sinon.SinonStub;
 
 		beforeEach(function() {
-			paginator = new TestPaginator({ sort: 'foo' });
+			paginator = new TestPaginator({sort: "foo"});
 
 			sortNode = {} as SortNode;
-			sortNodes = { foo: sortNode, bar: {} as SortNode };
-			getSortNodes = sinon.stub(TestPaginator as any, '_getSortNodes')
+			sortNodes = {foo: sortNode, bar: {} as SortNode};
+			getSortNodes = sinon.stub(TestPaginator as any, "_getSortNodes")
 				.returns(sortNodes);
 		});
 
-		it('gets the sort nodes for the class', function() {
+		it("gets the sort nodes for the class", function() {
 			(paginator as any)._getSortNode();
 
 			expect(getSortNodes).to.be.calledOnce;
 			expect(getSortNodes).to.be.calledOn(TestPaginator);
 		});
 
-		it('returns the node corresponding to the sort', function() {
+		it("returns the node corresponding to the sort", function() {
 			expect((paginator as any)._getSortNode()).to.equal(sortNode);
 		});
 
-		it('throws if a corresponding node is not found', function() {
+		it("throws if a corresponding node is not found", function() {
 			delete sortNodes.foo;
 
 			expect(() => {
@@ -408,15 +408,15 @@ describe('Paginator', function() {
 				.that.satisfies((err: UnknownSortError) => {
 					expect(err.usedDefaultMessage).to.be.true;
 					expect(err.cause).to.be.null;
-					expect(err.info).to.deep.equal({ sort: 'foo' });
+					expect(err.info).to.deep.equal({sort: "foo"});
 					return true;
 				});
 		});
 	});
 
-	describe('#_createCursor', function() {
-		const queryName = 'some query name';
-		const sort = 'some sort name';
+	describe("#_createCursor", function() {
+		const queryName = "some query name";
+		const sort = "some sort name";
 		let paginator: Paginator<TestModel, any>;
 		let item: TestModel;
 		let getQueryName: sinon.SinonStub;
@@ -425,34 +425,34 @@ describe('Paginator', function() {
 		let getSortNode: sinon.SinonStub;
 
 		beforeEach(function() {
-			paginator = new TestPaginator({ sort });
+			paginator = new TestPaginator({sort});
 			item = {} as TestModel;
 
-			getQueryName = sinon.stub(TestPaginator as any, '_getQueryName')
+			getQueryName = sinon.stub(TestPaginator as any, "_getQueryName")
 				.returns(queryName);
 
 			cursorValues = [];
 			sortNode = sinon.createStubInstance(SortNode);
-			getSortNode = sinon.stub(paginator as any, '_getSortNode')
+			getSortNode = sinon.stub(paginator as any, "_getSortNode")
 				.returns(sortNode);
 			sortNode.getCursorValues.returns(cursorValues);
 		});
 
-		it('gets the query name from the class', function() {
+		it("gets the query name from the class", function() {
 			(paginator as any)._createCursor(item);
 
 			expect(getQueryName).to.be.calledOnce;
 			expect(getQueryName).to.be.calledOn(TestPaginator);
 		});
 
-		it('gets the sort node', function() {
+		it("gets the sort node", function() {
 			(paginator as any)._createCursor(item);
 
 			expect(getSortNode).to.be.calledOnce;
 			expect(getSortNode).to.be.calledOn(paginator);
 		});
 
-		it('gets cursor values from the item using the sort node', function() {
+		it("gets cursor values from the item using the sort node", function() {
 			(paginator as any)._createCursor(item);
 
 			expect(sortNode.getCursorValues).to.be.calledOnce;
@@ -462,7 +462,7 @@ describe('Paginator', function() {
 			);
 		});
 
-		it('returns a new cursor with the query name, sort name, and values', function() {
+		it("returns a new cursor with the query name, sort name, and values", function() {
 			const result = (paginator as any)._createCursor(item);
 
 			expect(result).to.be.an.instanceOf(Cursor);
@@ -471,7 +471,7 @@ describe('Paginator', function() {
 			expect(result.values).to.equal(cursorValues);
 		});
 
-		it('skips sortNode and value fetching if item is not provided', function() {
+		it("skips sortNode and value fetching if item is not provided", function() {
 			const result = (paginator as any)._createCursor();
 
 			expect(getSortNode).to.not.be.called;
@@ -482,8 +482,8 @@ describe('Paginator', function() {
 		});
 	});
 
-	describe('#_createCursorString', function() {
-		const cursorString = 'serialized cursor';
+	describe("#_createCursorString", function() {
+		const cursorString = "serialized cursor";
 		let paginator: TestPaginator;
 		let item: TestModel;
 		let cursor: sinon.SinonStubbedInstance<Cursor>;
@@ -494,61 +494,61 @@ describe('Paginator', function() {
 			paginator = new TestPaginator();
 			item = {} as TestModel;
 			cursor = sinon.createStubInstance(Cursor);
-			createCursor = sinon.stub(paginator as any, '_createCursor')
+			createCursor = sinon.stub(paginator as any, "_createCursor")
 				.returns(cursor);
 			cursor.serialize.returns(cursorString);
 
 			result = (paginator as any)._createCursorString(item);
 		});
 
-		it('creates a cursor from the provided item', function() {
+		it("creates a cursor from the provided item", function() {
 			expect(createCursor).to.be.calledOnce;
 			expect(createCursor).to.be.calledOn(paginator);
 			expect(createCursor).to.be.calledWith(sinon.match.same(item));
 		});
 
-		it('serializes the created cursor', function() {
+		it("serializes the created cursor", function() {
 			expect(cursor.serialize).to.be.calledOnce;
 			expect(cursor.serialize).to.be.calledOn(cursor);
 		});
 
-		it('returns the serialized cursor', function() {
+		it("returns the serialized cursor", function() {
 			expect(result).to.equal(cursorString);
 		});
 	});
 
-	describe('#_validateCursor', function() {
+	describe("#_validateCursor", function() {
 		let args: OtherPaginatorArgs;
 		let paginator: OtherPaginator;
 		let cursor: Cursor;
 		let getQueryName: sinon.SinonStub;
 
 		beforeEach(function() {
-			args = { foo: 'baz', bar: 'qux' };
-			paginator = new OtherPaginator({ sort: 'foo' }, args);
+			args = {foo: "baz", bar: "qux"};
+			paginator = new OtherPaginator({sort: "foo"}, args);
 			cursor = new Cursor(
-				'cursor query name',
-				'foo',
+				"cursor query name",
+				"foo",
 				undefined,
 			);
 
-			getQueryName = sinon.stub(OtherPaginator as any, '_getQueryName')
+			getQueryName = sinon.stub(OtherPaginator as any, "_getQueryName")
 				.returns(cursor.query);
 		});
 
-		it('gets the query name from the class', function() {
+		it("gets the query name from the class", function() {
 			(paginator as any)._validateCursor(cursor);
 
 			expect(getQueryName).to.be.calledOnce;
 			expect(getQueryName).to.be.calledOn(OtherPaginator);
 		});
 
-		it('returns the provided cursor', function() {
+		it("returns the provided cursor", function() {
 			expect((paginator as any)._validateCursor(cursor)).to.equal(cursor);
 		});
 
-		it('throws if the query name does not match the cursor', function() {
-			const queryName = 'some other query name';
+		it("throws if the query name does not match the cursor", function() {
+			const queryName = "some other query name";
 			getQueryName.returns(queryName);
 
 			expect(() => {
@@ -556,7 +556,7 @@ describe('Paginator', function() {
 			}).to.throw(InvalidCursorError)
 				.that.satisfies((err: InvalidCursorError) => {
 					expect(err.shortMessage).to.equal(
-						'Cursor is for a different query',
+						"Cursor is for a different query",
 					);
 					expect(err.cause).to.be.null;
 					expect(err.info).to.deep.equal({
@@ -567,15 +567,15 @@ describe('Paginator', function() {
 				});
 		});
 
-		it('throws if the sort name does not match the cursor', function() {
-			cursor.sort = 'some other sort';
+		it("throws if the sort name does not match the cursor", function() {
+			cursor.sort = "some other sort";
 
 			expect(() => {
 				(paginator as any)._validateCursor(cursor);
 			}).to.throw(InvalidCursorError)
 				.that.satisfies((err: InvalidCursorError) => {
 					expect(err.shortMessage).to.equal(
-						'Cursor is for a different sort',
+						"Cursor is for a different sort",
 					);
 					expect(err.cause).to.be.null;
 					expect(err.info).to.deep.equal({
@@ -587,8 +587,8 @@ describe('Paginator', function() {
 		});
 	});
 
-	describe('#_parseCursor', function() {
-		const str = 'encoded cursor string';
+	describe("#_parseCursor", function() {
+		const str = "encoded cursor string";
 		let paginator: TestPaginator;
 		let cursor: Cursor;
 		let parse: sinon.SinonStub;
@@ -597,12 +597,12 @@ describe('Paginator', function() {
 		beforeEach(function() {
 			paginator = new TestPaginator();
 			cursor = {} as Cursor;
-			parse = sinon.stub(Cursor, 'parse').returns(cursor);
-			validateCursor = sinon.stub(paginator as any, '_validateCursor')
+			parse = sinon.stub(Cursor, "parse").returns(cursor);
+			validateCursor = sinon.stub(paginator as any, "_validateCursor")
 				.returnsArg(0);
 		});
 
-		it('parses the provided string as a Cursor', function() {
+		it("parses the provided string as a Cursor", function() {
 			(paginator as any)._parseCursor(str);
 
 			expect(parse).to.be.calledOnce;
@@ -610,7 +610,7 @@ describe('Paginator', function() {
 			expect(parse).to.be.calledWith(str);
 		});
 
-		it('validates the parsed cursor against this query', function() {
+		it("validates the parsed cursor against this query", function() {
 			(paginator as any)._parseCursor(str);
 
 			expect(validateCursor).to.be.calledOnce;
@@ -618,13 +618,13 @@ describe('Paginator', function() {
 			expect(validateCursor).to.be.calledWith(sinon.match.same(cursor));
 		});
 
-		it('returns the parsed cursor', function() {
+		it("returns the parsed cursor", function() {
 			expect((paginator as any)._parseCursor(str)).to.equal(cursor);
 		});
 	});
 
-	describe('#_getCursorValues', function() {
-		const str = 'encoded cursor string';
+	describe("#_getCursorValues", function() {
+		const str = "encoded cursor string";
 		let paginator: TestPaginator;
 		let cursorValues: any[];
 		let cursor: Cursor;
@@ -633,12 +633,12 @@ describe('Paginator', function() {
 		beforeEach(function() {
 			paginator = new TestPaginator();
 			cursorValues = [];
-			cursor = { values: cursorValues } as Cursor;
-			parseCursor = sinon.stub(paginator as any, '_parseCursor')
+			cursor = {values: cursorValues} as Cursor;
+			parseCursor = sinon.stub(paginator as any, "_parseCursor")
 				.returns(cursor);
 		});
 
-		it('parses the provided string as a cursor using this query', function() {
+		it("parses the provided string as a cursor using this query", function() {
 			(paginator as any)._getCursorValues(str);
 
 			expect(parseCursor).to.be.calledOnce;
@@ -646,13 +646,13 @@ describe('Paginator', function() {
 			expect(parseCursor).to.be.calledWith(str);
 		});
 
-		it('returns the values from the parsed cursor', function() {
+		it("returns the values from the parsed cursor", function() {
 			const result = (paginator as any)._getCursorValues(str);
 
 			expect(result).to.equal(cursorValues);
 		});
 
-		it('returns undefined without parsing if no string is provided', function() {
+		it("returns undefined without parsing if no string is provided", function() {
 			const result = (paginator as any)._getCursorValues();
 
 			expect(parseCursor).to.not.be.called;
@@ -660,8 +660,8 @@ describe('Paginator', function() {
 		});
 	});
 
-	describe('#_applySortNode', function() {
-		const cursor = 'encoded cursor string';
+	describe("#_applySortNode", function() {
+		const cursor = "encoded cursor string";
 		let paginator: TestPaginator;
 		let qry: QueryBuilder<TestModel>;
 		let cursorValues: any[];
@@ -674,16 +674,16 @@ describe('Paginator', function() {
 			qry = {} as QueryBuilder<TestModel>;
 
 			cursorValues = [];
-			getCursorValues = sinon.stub(paginator as any, '_getCursorValues')
+			getCursorValues = sinon.stub(paginator as any, "_getCursorValues")
 				.returns(cursorValues);
 
 			sortNode = sinon.createStubInstance(SortNode);
-			getSortNode = sinon.stub(paginator as any, '_getSortNode')
+			getSortNode = sinon.stub(paginator as any, "_getSortNode")
 				.returns(sortNode);
 			sortNode.apply.returnsArg(0);
 		});
 
-		it('gets the values from the provided cursor string', function() {
+		it("gets the values from the provided cursor string", function() {
 			(paginator as any)._applySortNode(qry, cursor);
 
 			expect(getCursorValues).to.be.calledOnce;
@@ -691,14 +691,14 @@ describe('Paginator', function() {
 			expect(getCursorValues).to.be.calledWith(cursor);
 		});
 
-		it('gets the sort node', function() {
+		it("gets the sort node", function() {
 			(paginator as any)._applySortNode(qry, cursor);
 
 			expect(getSortNode).to.be.calledOnce;
 			expect(getSortNode).to.be.calledOn(paginator);
 		});
 
-		it('applies the sort node to the provided query, with cursor values', function() {
+		it("applies the sort node to the provided query, with cursor values", function() {
 			(paginator as any)._applySortNode(qry, cursor);
 
 			expect(sortNode.apply).to.be.calledOnce;
@@ -710,20 +710,20 @@ describe('Paginator', function() {
 		});
 	});
 
-	describe('#_applyLimit', function() {
-		it('applies the limit to the provided query', function() {
-			const paginator = new TestPaginator({ limit: 42 });
+	describe("#_applyLimit", function() {
+		it("applies the limit to the provided query", function() {
+			const paginator = new TestPaginator({limit: 42});
 			const qry = new FakeQuery();
 
 			(paginator as any)._applyLimit(qry.builder);
 
-			expect(qry.stubNames).to.deep.equal([ 'limit' ]);
+			expect(qry.stubNames).to.deep.equal(["limit"]);
 			expect(qry.stubs.limit).to.be.calledWith(42);
 		});
 	});
 
-	describe('#_getQuery', function() {
-		const cursor = 'encoded cursor string';
+	describe("#_getQuery", function() {
+		const cursor = "encoded cursor string";
 		let paginator: TestPaginator;
 		let qry: QueryBuilder<TestModel>;
 		let getBaseQuery: sinon.SinonStub;
@@ -735,21 +735,21 @@ describe('Paginator', function() {
 			paginator = new TestPaginator();
 
 			qry = {} as QueryBuilder<TestModel>;
-			getBaseQuery = sinon.stub(paginator, 'getBaseQuery')
+			getBaseQuery = sinon.stub(paginator, "getBaseQuery")
 				.returns(qry);
 
-			applySortNode = sinon.stub(paginator as any, '_applySortNode');
-			applyLimit = sinon.stub(paginator as any, '_applyLimit');
+			applySortNode = sinon.stub(paginator as any, "_applySortNode");
+			applyLimit = sinon.stub(paginator as any, "_applyLimit");
 
 			result = (paginator as any)._getQuery(cursor);
 		});
 
-		it('gets the base query', function() {
+		it("gets the base query", function() {
 			expect(getBaseQuery).to.be.calledOnce;
 			expect(getBaseQuery).to.be.calledOn(paginator);
 		});
 
-		it('applies the sort node to the query', function() {
+		it("applies the sort node to the query", function() {
 			expect(applySortNode).to.be.calledOnce;
 			expect(applySortNode).to.be.calledOn(paginator);
 			expect(applySortNode).to.be.calledWith(
@@ -758,37 +758,37 @@ describe('Paginator', function() {
 			);
 		});
 
-		it('applies the limit to the query', function() {
+		it("applies the limit to the query", function() {
 			expect(applyLimit).to.be.calledOnce;
 			expect(applyLimit).to.be.calledOn(paginator);
 			expect(applyLimit).to.be.calledWith(qry);
 		});
 
-		it('returns the query query', function() {
+		it("returns the query query", function() {
 			expect(result).to.equal(qry);
 		});
 	});
 
-	describe('_getRemainingCount', function() {
+	describe("_getRemainingCount", function() {
 		let paginator: TestPaginator;
 		let qry: FakeQuery;
 
 		beforeEach(function() {
-			paginator = new TestPaginator({ limit: 42 });
+			paginator = new TestPaginator({limit: 42});
 			qry = new FakeQuery();
 			qry.resolves(1337);
-			sinon.spy(qry.builder, 'then');
+			sinon.spy(qry.builder, "then");
 		});
 
-		it('fetches the full query result size', async function() {
+		it("fetches the full query result size", async function() {
 			await (paginator as any)._getRemainingCount(qry.builder, 101);
 
-			expect(qry.stubNames).to.deep.equal([ 'resultSize' ]);
+			expect(qry.stubNames).to.deep.equal(["resultSize"]);
 			expect(qry.stubs.resultSize).to.be.calledOnce;
 			expect(qry.stubs.resultSize).to.be.calledOn(qry.builder);
 		});
 
-		it('returns the difference between result size and item count', async function() {
+		it("returns the difference between result size and item count", async function() {
 			const result = await (paginator as any)._getRemainingCount(
 				qry.builder,
 				101,
@@ -797,7 +797,7 @@ describe('Paginator', function() {
 			expect(result).to.equal(1236);
 		});
 
-		it('simply returns zero if item count is less than the limit', async function() {
+		it("simply returns zero if item count is less than the limit", async function() {
 			const result = await (paginator as any)._getRemainingCount(
 				qry.builder,
 				41,
@@ -808,13 +808,13 @@ describe('Paginator', function() {
 			expect(result).to.equal(0);
 		});
 
-		it('proceeds normally if item count equals the limit', async function() {
+		it("proceeds normally if item count equals the limit", async function() {
 			const result = await (paginator as any)._getRemainingCount(
 				qry.builder,
 				42,
 			);
 
-			expect(qry.stubNames).to.deep.equal([ 'resultSize' ]);
+			expect(qry.stubNames).to.deep.equal(["resultSize"]);
 			expect(qry.stubs.resultSize).to.be.calledOnce;
 			expect(qry.stubs.resultSize).to.be.calledOn(qry.builder);
 			expect(result).to.equal(1295);

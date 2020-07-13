@@ -1,11 +1,11 @@
-import { Model, QueryBuilder } from 'objection';
-import { last, mapValues } from 'lodash';
-import { Cursor } from './cursor';
-import { InvalidCursorError } from './invalid-cursor-error';
-import { SortDescriptor } from './sort-descriptor';
-import { SortNode } from './sort-node';
-import { UnknownSortError } from './unknown-sort-error';
-import { createSortNode } from './create-sort-node';
+import {Model, QueryBuilder} from "objection";
+import {last, mapValues} from "lodash";
+import {Cursor} from "./cursor";
+import {InvalidCursorError} from "./invalid-cursor-error";
+import {SortDescriptor} from "./sort-descriptor";
+import {SortNode} from "./sort-node";
+import {UnknownSortError} from "./unknown-sort-error";
+import {createSortNode} from "./create-sort-node";
 
 /**
  * Paginator instance configuration.
@@ -218,11 +218,11 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 *   if any.
 	 */
 	constructor(options: PaginatorOptions = {}, ...rest: If<TArgs>) {
-		const { limit, sort } = options;
+		const {limit, sort} = options;
 		Object.defineProperties(this, {
-			limit: { value: limit || 1000, enumerable: true },
-			sort: { value: sort || 'default', enumerable: true },
-			args: { value: rest[0], enumerable: true, writable: true },
+			limit: {value: limit || 1000, enumerable: true},
+			sort: {value: sort || "default", enumerable: true},
+			args: {value: rest[0], enumerable: true, writable: true},
 		});
 	}
 
@@ -325,7 +325,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 			cursor = this._createCursorString();
 		}
 
-		return { items, remaining, cursor };
+		return {items, remaining, cursor};
 	}
 
 	/**
@@ -342,7 +342,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 		// eslint-disable-next-line no-underscore-dangle
 		const node = this._cls._getSortNodes()[this.sort];
 		if (node) return node;
-		throw new UnknownSortError({ info: { sort: this.sort } });
+		throw new UnknownSortError({info: {sort: this.sort}});
 	}
 
 	/**
@@ -398,7 +398,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 		const queryName = this._cls._getQueryName();
 		if (cursor.query !== queryName) {
 			throw new InvalidCursorError({
-				shortMessage: 'Cursor is for a different query',
+				shortMessage: "Cursor is for a different query",
 				info: {
 					cursorQuery: cursor.query,
 					expectedQuery: queryName,
@@ -408,7 +408,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 
 		if (cursor.sort !== this.sort) {
 			throw new InvalidCursorError({
-				shortMessage: 'Cursor is for a different sort',
+				shortMessage: "Cursor is for a different sort",
 				info: {
 					cursorSort: cursor.sort,
 					expectedSort: this.sort,

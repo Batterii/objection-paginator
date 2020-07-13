@@ -1,131 +1,131 @@
-import { QueryBuilder as KnexQueryBuilder, Sql } from 'knex';
-import { Model, QueryBuilder } from 'objection';
-import { Column } from '../../lib/column';
-import { ConfigurationError } from '../../lib/configuration-error';
-import { FakeQuery } from '@batterii/fake-query';
-import { expect } from 'chai';
-import sinon from 'sinon';
+import {QueryBuilder as KnexQueryBuilder, Sql} from "knex";
+import {Model, QueryBuilder} from "objection";
+import {Column} from "../../lib/column";
+import {ConfigurationError} from "../../lib/configuration-error";
+import {FakeQuery} from "@batterii/fake-query";
+import {expect} from "chai";
+import sinon from "sinon";
 
-describe('Column', function() {
-	it('stores the provide column and table names', function() {
-		const column = new Column('foo', 'bar');
+describe("Column", function() {
+	it("stores the provide column and table names", function() {
+		const column = new Column("foo", "bar");
 
-		expect(column.columnName).to.equal('foo');
-		expect(column.tableName).to.equal('bar');
+		expect(column.columnName).to.equal("foo");
+		expect(column.tableName).to.equal("bar");
 	});
 
-	it('supports omitting the table name', function() {
-		const column = new Column('foo');
+	it("supports omitting the table name", function() {
+		const column = new Column("foo");
 
-		expect(column.columnName).to.equal('foo');
+		expect(column.columnName).to.equal("foo");
 		expect(column.tableName).to.be.undefined;
 	});
 
-	describe('::validate', function() {
-		it('returns the provided column identifier, if it is valid', function() {
-			expect(Column.validate('foo.bar')).to.equal('foo.bar');
+	describe("::validate", function() {
+		it("returns the provided column identifier, if it is valid", function() {
+			expect(Column.validate("foo.bar")).to.equal("foo.bar");
 		});
 
-		it('allows implicit table names', function() {
-			expect(Column.validate('foo')).to.equal('foo');
+		it("allows implicit table names", function() {
+			expect(Column.validate("foo")).to.equal("foo");
 		});
 
-		it('throws if there are more than two terms', function() {
+		it("throws if there are more than two terms", function() {
 			expect(() => {
-				Column.validate('foo.bar.baz');
+				Column.validate("foo.bar.baz");
 			}).to.throw(ConfigurationError).that.includes({
-				message: 'Invalid column identifier \'foo.bar.baz\'',
+				message: "Invalid column identifier 'foo.bar.baz'",
 				cause: null,
 				info: null,
 			});
 		});
 
-		it('throws if the column name is empty', function() {
+		it("throws if the column name is empty", function() {
 			expect(() => {
-				Column.validate('foo.');
+				Column.validate("foo.");
 			}).to.throw(ConfigurationError).that.includes({
-				message: 'Invalid column identifier \'foo.\'',
+				message: "Invalid column identifier 'foo.'",
 				cause: null,
 				info: null,
 			});
 		});
 
-		it('throws if the table name is empty', function() {
+		it("throws if the table name is empty", function() {
 			expect(() => {
-				Column.validate('.bar');
+				Column.validate(".bar");
 			}).to.throw(ConfigurationError).that.includes({
-				message: 'Invalid column identifier \'.bar\'',
+				message: "Invalid column identifier '.bar'",
 				cause: null,
 				info: null,
 			});
 		});
 
-		it('throws for an empty string', function() {
+		it("throws for an empty string", function() {
 			expect(() => {
-				Column.validate('');
+				Column.validate("");
 			}).to.throw(ConfigurationError).that.includes({
-				message: 'Invalid column identifier \'\'',
+				message: "Invalid column identifier ''",
 				cause: null,
 				info: null,
 			});
 		});
 	});
 
-	describe('::parse', function() {
-		it('creates an instance from a full dot-separated identifier', function() {
-			const result = Column.parse('foo.bar');
+	describe("::parse", function() {
+		it("creates an instance from a full dot-separated identifier", function() {
+			const result = Column.parse("foo.bar");
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result.columnName).to.equal('bar');
-			expect(result.tableName).to.equal('foo');
+			expect(result.columnName).to.equal("bar");
+			expect(result.tableName).to.equal("foo");
 		});
 
-		it('omits the table name if there are no dots', function() {
-			const result = Column.parse('baz');
+		it("omits the table name if there are no dots", function() {
+			const result = Column.parse("baz");
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result.columnName).to.equal('baz');
+			expect(result.columnName).to.equal("baz");
 			expect(result.tableName).to.be.undefined;
 		});
 
-		it('ignores extra preceding terms, if any', function() {
-			const result = Column.parse('foo.bar.baz');
+		it("ignores extra preceding terms, if any", function() {
+			const result = Column.parse("foo.bar.baz");
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result.columnName).to.equal('baz');
-			expect(result.tableName).to.equal('bar');
+			expect(result.columnName).to.equal("baz");
+			expect(result.tableName).to.equal("bar");
 		});
 	});
 
-	describe('::extractFromSql', function() {
-		const sql = 'select `foo` from `bar`';
+	describe("::extractFromSql", function() {
+		const sql = "select `foo` from `bar`";
 
-		it('creates an instance from a simple Knex SQL string', function() {
+		it("creates an instance from a simple Knex SQL string", function() {
 			const result = Column.extractFromSql(sql);
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result!.columnName).to.equal('foo');
-			expect(result!.tableName).to.equal('bar');
+			expect(result!.columnName).to.equal("foo");
+			expect(result!.tableName).to.equal("bar");
 		});
 
-		it('omits the table name from the result, if specified', function() {
+		it("omits the table name from the result, if specified", function() {
 			const result = Column.extractFromSql(sql, true);
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result!.columnName).to.equal('foo');
+			expect(result!.columnName).to.equal("foo");
 			expect(result!.tableName).to.be.undefined;
 		});
 
-		it('returns null if the SQL string does not match the expected format', function() {
-			const result = Column.extractFromSql('select foo from bar');
+		it("returns null if the SQL string does not match the expected format", function() {
+			const result = Column.extractFromSql("select foo from bar");
 
 			expect(result).to.be.null;
 		});
 	});
 
-	describe('::toRaw', function() {
-		const str = 'column identifier string';
-		const rawStr = 'raw column identifier string';
+	describe("::toRaw", function() {
+		const str = "column identifier string";
+		const rawStr = "raw column identifier string";
 		let qry: QueryBuilder<Model>;
 		let column: sinon.SinonStubbedInstance<Column>;
 		let parse: sinon.SinonStub;
@@ -134,13 +134,13 @@ describe('Column', function() {
 		beforeEach(function() {
 			qry = {} as QueryBuilder<Model>;
 			column = sinon.createStubInstance(Column);
-			parse = sinon.stub(Column, 'parse').returns(column);
+			parse = sinon.stub(Column, "parse").returns(column);
 			rawColumn = sinon.createStubInstance(Column);
 			column.toRaw.returns(rawColumn);
 			rawColumn.serialize.returns(rawStr);
 		});
 
-		it('parses the provided string as a column', function() {
+		it("parses the provided string as a column", function() {
 			Column.toRaw(str, qry);
 
 			expect(parse).to.be.calledOnce;
@@ -148,7 +148,7 @@ describe('Column', function() {
 			expect(parse).to.be.calledWith(str);
 		});
 
-		it('converts the parsed column to raw', function() {
+		it("converts the parsed column to raw", function() {
 			Column.toRaw(str, qry);
 
 			expect(column.toRaw).to.be.calledOnce;
@@ -156,34 +156,34 @@ describe('Column', function() {
 			expect(column.toRaw).to.be.calledWith(sinon.match.same(qry));
 		});
 
-		it('serializes the raw column', function() {
+		it("serializes the raw column", function() {
 			Column.toRaw(str, qry);
 
 			expect(rawColumn.serialize).to.be.calledOnce;
 			expect(rawColumn.serialize).to.be.calledOn(rawColumn);
 		});
 
-		it('returns the serialized raw column', function() {
+		it("returns the serialized raw column", function() {
 			expect(Column.toRaw(str, qry)).to.equal(rawStr);
 		});
 	});
 
-	describe('clone', function() {
-		it('returns a copy of the instance', function() {
-			const column = new Column('foo', 'bar');
+	describe("clone", function() {
+		it("returns a copy of the instance", function() {
+			const column = new Column("foo", "bar");
 
 			const result = column.clone();
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result.columnName).to.equal('foo');
-			expect(result.tableName).to.equal('bar');
+			expect(result.columnName).to.equal("foo");
+			expect(result.tableName).to.equal("bar");
 			expect(result).to.not.equal(column);
 		});
 	});
 
-	describe('#getMappingQuery', function() {
-		const columnName = 'column name';
-		const tableName = 'table name';
+	describe("#getMappingQuery", function() {
+		const columnName = "column name";
+		const tableName = "table name";
 		let column: Column;
 		let clone: FakeQuery;
 		let qry: QueryBuilder<Model>;
@@ -192,24 +192,24 @@ describe('Column', function() {
 			column = new Column(columnName, tableName);
 			clone = new FakeQuery();
 			qry = {
-				clone: sinon.stub().named('clone').returns(clone.builder),
+				clone: sinon.stub().named("clone").returns(clone.builder),
 			} as any;
 		});
 
-		it('clones the provided query builder', function() {
+		it("clones the provided query builder", function() {
 			column.getMappingQuery(qry);
 
 			expect(qry.clone).to.be.calledOnce;
 			expect(qry.clone).to.be.calledOn(qry);
 		});
 
-		it('clears the cloned query and applies a simple SELECT FROM', function() {
+		it("clears the cloned query and applies a simple SELECT FROM", function() {
 			column.getMappingQuery(qry);
 
 			expect(clone.stubNames).to.deep.equal([
-				'clear',
-				'select',
-				'from',
+				"clear",
+				"select",
+				"from",
 			]);
 			expect(clone.stubs.clear).to.be.calledOnce;
 			expect(clone.stubs.clear).to.be.calledOn(clone.builder);
@@ -222,19 +222,19 @@ describe('Column', function() {
 			expect(clone.stubs.from).to.be.calledWith(tableName);
 		});
 
-		it('returns the cloned query', function() {
+		it("returns the cloned query", function() {
 			expect(column.getMappingQuery(qry)).to.equal(clone.builder);
 		});
 
-		it('uses a default table name if there is none', function() {
+		it("uses a default table name if there is none", function() {
 			column.tableName = undefined;
 
 			const result = column.getMappingQuery(qry);
 
 			expect(clone.stubNames).to.deep.equal([
-				'clear',
-				'select',
-				'from',
+				"clear",
+				"select",
+				"from",
 			]);
 			expect(clone.stubs.clear).to.be.calledOnce;
 			expect(clone.stubs.clear).to.be.calledOn(clone.builder);
@@ -244,13 +244,13 @@ describe('Column', function() {
 			expect(clone.stubs.select).to.be.calledWith(columnName);
 			expect(clone.stubs.from).to.be.calledOnce;
 			expect(clone.stubs.from).to.be.calledOn(clone.builder);
-			expect(clone.stubs.from).to.be.calledWith('some_table');
+			expect(clone.stubs.from).to.be.calledWith("some_table");
 			expect(result).to.equal(clone.builder);
 		});
 	});
 
-	describe('#getMappingSql', function() {
-		const sql = 'Knex-created sql';
+	describe("#getMappingSql", function() {
+		const sql = "Knex-created sql";
 		let column: Column;
 		let qry: QueryBuilder<Model>;
 		let sqlObj: Sql;
@@ -259,21 +259,21 @@ describe('Column', function() {
 		let getMappingQuery: sinon.SinonStub;
 
 		beforeEach(function() {
-			column = new Column('foo', 'bar');
+			column = new Column("foo", "bar");
 			qry = {} as QueryBuilder<Model>;
-			sqlObj = { sql } as Sql;
+			sqlObj = {sql} as Sql;
 			knexQuery = {
-				toSQL: sinon.stub().named('toSQL').returns(sqlObj),
+				toSQL: sinon.stub().named("toSQL").returns(sqlObj),
 			} as any;
 			mappingQuery = {
-				toKnexQuery: sinon.stub().named('toKnexQuery')
+				toKnexQuery: sinon.stub().named("toKnexQuery")
 					.returns(knexQuery),
 			} as any;
-			getMappingQuery = sinon.stub(column, 'getMappingQuery')
+			getMappingQuery = sinon.stub(column, "getMappingQuery")
 				.returns(mappingQuery);
 		});
 
-		it('gets the mapping query using the provided query builder', function() {
+		it("gets the mapping query using the provided query builder", function() {
 			column.getMappingSql(qry);
 
 			expect(getMappingQuery).to.be.calledOnce;
@@ -281,27 +281,27 @@ describe('Column', function() {
 			expect(getMappingQuery).to.be.calledWith(sinon.match.same(qry));
 		});
 
-		it('converts the mapping query to a knex query', function() {
+		it("converts the mapping query to a knex query", function() {
 			column.getMappingSql(qry);
 
 			expect(mappingQuery.toKnexQuery).to.be.calledOnce;
 			expect(mappingQuery.toKnexQuery).to.be.calledOn(mappingQuery);
 		});
 
-		it('converts the knex qry to a knex Sql object', function() {
+		it("converts the knex qry to a knex Sql object", function() {
 			column.getMappingSql(qry);
 
 			expect(knexQuery.toSQL).to.be.calledOnce;
 			expect(knexQuery.toSQL).to.be.calledOn(knexQuery);
 		});
 
-		it('returns the sql string from the knex Sql object', function() {
+		it("returns the sql string from the knex Sql object", function() {
 			expect(column.getMappingSql(qry)).to.equal(sql);
 		});
 	});
 
-	describe('#toRaw', function() {
-		const sql = 'mapping sql';
+	describe("#toRaw", function() {
+		const sql = "mapping sql";
 		let column: Column;
 		let qry: QueryBuilder<Model>;
 		let getMappingSql: sinon.SinonStub;
@@ -311,17 +311,17 @@ describe('Column', function() {
 		let clone: sinon.SinonStub;
 
 		beforeEach(function() {
-			column = new Column('foo', 'bar');
+			column = new Column("foo", "bar");
 			qry = {} as QueryBuilder<Model>;
-			getMappingSql = sinon.stub(column, 'getMappingSql').returns(sql);
-			rawColumn = new Column('baz', 'qux');
-			extractFromSql = sinon.stub(Column, 'extractFromSql')
+			getMappingSql = sinon.stub(column, "getMappingSql").returns(sql);
+			rawColumn = new Column("baz", "qux");
+			extractFromSql = sinon.stub(Column, "extractFromSql")
 				.returns(rawColumn);
-			clonedColumn = new Column('foo', 'bar');
-			clone = sinon.stub(column, 'clone').returns(clonedColumn);
+			clonedColumn = new Column("foo", "bar");
+			clone = sinon.stub(column, "clone").returns(clonedColumn);
 		});
 
-		it('gets the mapping sql', function() {
+		it("gets the mapping sql", function() {
 			column.toRaw(qry);
 
 			expect(getMappingSql).to.be.calledOnce;
@@ -329,7 +329,7 @@ describe('Column', function() {
 			expect(getMappingSql).to.be.calledWith(sinon.match.same(qry));
 		});
 
-		it('extracts the raw column from the mapping sql', function() {
+		it("extracts the raw column from the mapping sql", function() {
 			column.toRaw(qry);
 
 			expect(extractFromSql).to.be.calledOnce;
@@ -337,11 +337,11 @@ describe('Column', function() {
 			expect(extractFromSql).to.be.calledWith(sql, false);
 		});
 
-		it('returns the raw column', function() {
+		it("returns the raw column", function() {
 			expect(column.toRaw(qry)).to.equal(rawColumn);
 		});
 
-		it('returns a clone instead, if the raw column comes back null', function() {
+		it("returns a clone instead, if the raw column comes back null", function() {
 			extractFromSql.returns(null);
 
 			const result = column.toRaw(qry);
@@ -351,7 +351,7 @@ describe('Column', function() {
 			expect(result).to.equal(clonedColumn);
 		});
 
-		it('omits the table name when extracting, if the instance has none', function() {
+		it("omits the table name when extracting, if the instance has none", function() {
 			column.tableName = undefined;
 
 			const result = column.toRaw(qry);
@@ -366,17 +366,17 @@ describe('Column', function() {
 		});
 	});
 
-	describe('#serialize', function() {
-		it('returns instance as a dot-separated column identifier', function() {
-			const column = new Column('foo', 'bar');
+	describe("#serialize", function() {
+		it("returns instance as a dot-separated column identifier", function() {
+			const column = new Column("foo", "bar");
 
-			expect(column.serialize()).to.equal('bar.foo');
+			expect(column.serialize()).to.equal("bar.foo");
 		});
 
-		it('omits the table name, if there is none', function() {
-			const column = new Column('foo');
+		it("omits the table name, if there is none", function() {
+			const column = new Column("foo");
 
-			expect(column.serialize()).to.equal('foo');
+			expect(column.serialize()).to.equal("foo");
 		});
 	});
 });

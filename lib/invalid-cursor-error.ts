@@ -1,4 +1,4 @@
-import { ObjectionPaginatorError } from './objection-paginator-error';
+import {ObjectionPaginatorError} from "./objection-paginator-error";
 
 /**
  * Error class which indicates that a problem was found with a cursor provided
@@ -19,6 +19,6 @@ import { ObjectionPaginatorError } from './objection-paginator-error';
  */
 export class InvalidCursorError extends ObjectionPaginatorError {
 	static getDefaultMessage(): string {
-		return 'Invalid cursor';
+		return "Invalid cursor";
 	}
 }

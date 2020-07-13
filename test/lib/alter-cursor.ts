@@ -1,4 +1,4 @@
-import { decodeObject, encodeObject } from '@batterii/encode-object';
+import {decodeObject, encodeObject} from "@batterii/encode-object";
 
 /**
  * A utility for integration test. Alters a query string by replacing the value

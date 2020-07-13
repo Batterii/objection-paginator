@@ -1,29 +1,29 @@
-import { Model, Pojo } from 'objection';
-import { Food } from './food';
-import { Membership } from './membership';
+import {Model, Pojo} from "objection";
+import {Food} from "./food";
+import {Membership} from "./membership";
 
 export enum UserRole {
-	RegularUser = 'regularUser',
-	Administrator = 'administrator',
+	RegularUser = "regularUser",
+	Administrator = "administrator",
 }
 
 export class User extends Model {
-	static tableName = 'users';
+	static tableName = "users";
 	static relationMappings = {
 		memberships: {
 			relation: Model.HasManyRelation,
 			modelClass: Membership,
 			join: {
-				from: 'users.id',
-				to: 'memberships.userId',
+				from: "users.id",
+				to: "memberships.userId",
 			},
 		},
 		favoriteFood: {
 			relation: Model.HasOneRelation,
 			modelClass: Food,
 			join: {
-				from: 'users.favoriteFoodId',
-				to: 'foods.id',
+				from: "users.favoriteFoodId",
+				to: "foods.id",
 			},
 		},
 	};
@@ -48,7 +48,7 @@ export class User extends Model {
 		 * SQLite does not have a native boolean type. Knex will convert them
 		 * to integers on the way in, but we have to convert them back here.
 		 */
-		if ('suspended' in json) json.suspended = Boolean(json.suspended);
+		if ("suspended" in json) json.suspended = Boolean(json.suspended);
 		return json;
 	}
 }

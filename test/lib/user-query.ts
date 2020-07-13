@@ -1,135 +1,135 @@
-import { ColumnType, Paginator, SortDirection } from '../../lib';
-import { User, UserRole } from './user';
-import { QueryBuilder } from 'objection';
+import {ColumnType, Paginator, SortDirection} from "../../lib";
+import {User, UserRole} from "./user";
+import {QueryBuilder} from "objection";
 
 export class UserQuery extends Paginator<User> {
 	static sorts = {
 		default: [
-			{ column: 'suspended', columnType: ColumnType.Boolean },
-			{ column: 'role', validate: validateRole },
+			{column: "suspended", columnType: ColumnType.Boolean},
+			{column: "role", validate: validateRole},
 			{
-				column: 'score',
+				column: "score",
 				columnType: ColumnType.Float,
 				direction: SortDirection.Descending,
 			},
-			'firstName',
-			'lastName',
-			{ column: 'id', columnType: ColumnType.Integer },
+			"firstName",
+			"lastName",
+			{column: "id", columnType: ColumnType.Integer},
 		],
 		reverse: [
 			{
-				column: 'suspended',
+				column: "suspended",
 				columnType: ColumnType.Boolean,
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'role',
+				column: "role",
 				direction: SortDirection.Descending,
 				validate: validateRole,
 			},
-			{ column: 'score', columnType: ColumnType.Float },
-			{ column: 'firstName', direction: SortDirection.Descending },
-			{ column: 'lastName', direction: SortDirection.Descending },
+			{column: "score", columnType: ColumnType.Float},
+			{column: "firstName", direction: SortDirection.Descending},
+			{column: "lastName", direction: SortDirection.Descending},
 			{
-				column: 'id',
+				column: "id",
 				columnType: ColumnType.Integer,
 				direction: SortDirection.Descending,
 			},
 		],
 		byFavoriteFoodId: [
 			{
-				column: 'favoriteFoodId',
+				column: "favoriteFoodId",
 				columnType: ColumnType.Integer,
 				nullable: true,
 			},
-			'firstName',
-			'lastName',
-			{ column: 'id', columnType: ColumnType.Integer },
+			"firstName",
+			"lastName",
+			{column: "id", columnType: ColumnType.Integer},
 		],
 		byFavoriteFoodIdReversed: [
 			{
-				column: 'favoriteFoodId',
+				column: "favoriteFoodId",
 				columnType: ColumnType.Integer,
 				nullable: true,
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'first_name',
+				column: "first_name",
 				direction: SortDirection.Descending,
-				valuePath: 'firstName',
+				valuePath: "firstName",
 			},
 			{
-				column: 'last_name',
+				column: "last_name",
 				direction: SortDirection.Descending,
-				valuePath: 'lastName',
+				valuePath: "lastName",
 			},
 			{
-				column: 'id',
+				column: "id",
 				columnType: ColumnType.Integer,
 				direction: SortDirection.Descending,
 			},
 		],
 		byFavoriteFoodName: [
 			{
-				column: 'favoriteFood.name',
+				column: "favoriteFood.name",
 				nullable: true,
 			},
-			'firstName',
-			'lastName',
+			"firstName",
+			"lastName",
 			{
-				column: 'users.id',
+				column: "users.id",
 				columnType: ColumnType.Integer,
-				valuePath: 'id',
+				valuePath: "id",
 			},
 		],
 		byFavoriteFoodNameReversed: [
 			{
-				column: 'favoriteFood.name',
+				column: "favoriteFood.name",
 				nullable: true,
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'firstName',
+				column: "firstName",
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'lastName',
+				column: "lastName",
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'users.id',
+				column: "users.id",
 				columnType: ColumnType.Integer,
 				direction: SortDirection.Descending,
-				valuePath: 'id',
+				valuePath: "id",
 			},
 		],
 		byFavoriteFoodNameReversedNullsLast: [
 			{
-				column: 'favoriteFood.name',
+				column: "favoriteFood.name",
 				nullable: true,
 				direction: SortDirection.DescendingNullsLast,
 			},
 			{
-				column: 'firstName',
+				column: "firstName",
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'lastName',
+				column: "lastName",
 				direction: SortDirection.Descending,
 			},
 			{
-				column: 'users.id',
+				column: "users.id",
 				columnType: ColumnType.Integer,
 				direction: SortDirection.Descending,
-				valuePath: 'id',
+				valuePath: "id",
 			},
 		],
 	};
 
 	getBaseQuery(): QueryBuilder<User> {
 		const qry = User.query();
-		if (this.sort.startsWith('byFavoriteFoodName')) {
-			qry.withGraphJoined('favoriteFood');
+		if (this.sort.startsWith("byFavoriteFoodName")) {
+			qry.withGraphJoined("favoriteFood");
 		}
 		return qry;
 	}

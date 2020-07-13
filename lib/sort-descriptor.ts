@@ -5,12 +5,12 @@ export enum SortDirection {
 	/**
 	 * Indicates an ascending sort.
 	 */
-	Ascending = 'asc',
+	Ascending = "asc",
 
 	/**
 	 * Indicates a descending sort.
 	 */
-	Descending = 'desc',
+	Descending = "desc",
 
 	/**
 	 * Indicates a descending sort, but with nulls last.
@@ -18,7 +18,7 @@ export enum SortDirection {
 	 * @remarks
 	 * This is the same as the descending sort unless the column is nullable.
 	 */
-	DescendingNullsLast = 'descnl',
+	DescendingNullsLast = "descnl",
 }
 
 /**
@@ -28,22 +28,22 @@ export enum ColumnType {
 	/**
 	 * Indicates a string (varchar) column.
 	 */
-	String = 'string',
+	String = "string",
 
 	/**
 	 * Indicates an integer column.
 	 */
-	Integer = 'integer',
+	Integer = "integer",
 
 	/**
 	 * Indicates a float column.
 	 */
-	Float = 'float',
+	Float = "float",
 
 	/**
 	 * Indicates a boolean column.
 	 */
-	Boolean = 'boolean',
+	Boolean = "boolean",
 }
 
 /**

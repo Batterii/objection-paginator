@@ -1,6 +1,6 @@
-import { ConcreteSortDescriptor } from './concrete-sort-descriptor';
-import { SortDescriptor } from './sort-descriptor';
-import { SortNode } from './sort-node';
+import {ConcreteSortDescriptor} from "./concrete-sort-descriptor";
+import {SortDescriptor} from "./sort-descriptor";
+import {SortNode} from "./sort-node";
 
 /**
  * An internal function that creates a SortNode from a user-specifed sort.

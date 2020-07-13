@@ -3,13 +3,13 @@ import {
 	SortDescriptor,
 	SortDirection,
 	ValidationFunction,
-} from './sort-descriptor';
-import { Model, QueryBuilder } from 'objection';
-import { ValidationCase, getErrorClass } from './get-error-class';
-import { defaults, isBoolean, isFinite, isInteger, isString } from 'lodash';
-import { Column } from './column';
-import { ConfigurationError } from './configuration-error';
-import { get as getPath } from 'object-path';
+} from "./sort-descriptor";
+import {Model, QueryBuilder} from "objection";
+import {ValidationCase, getErrorClass} from "./get-error-class";
+import {defaults, isBoolean, isFinite, isInteger, isString} from "lodash";
+import {Column} from "./column";
+import {ConfigurationError} from "./configuration-error";
+import {get as getPath} from "object-path";
 
 /**
  * Represents a single sort descriptor in a user-specified sort.
@@ -56,7 +56,7 @@ export class ConcreteSortDescriptor {
 	 */
 	constructor(descriptor: SortDescriptor | string) {
 		// Normalize shortcut descriptors.
-		if (isString(descriptor)) descriptor = { column: descriptor };
+		if (isString(descriptor)) descriptor = {column: descriptor};
 
 		// Assign descriptor properties with defaults.
 		defaults(this, descriptor, {
@@ -83,8 +83,8 @@ export class ConcreteSortDescriptor {
 	/**
 	 * Normalized sort order for non-null ORDER BY terms.
 	 */
-	get order(): 'asc'|'desc' {
-		const { direction } = this;
+	get order(): "asc"|"desc" {
+		const {direction} = this;
 		if (direction === SortDirection.DescendingNullsLast) {
 			return SortDirection.Descending;
 		}
@@ -94,8 +94,8 @@ export class ConcreteSortDescriptor {
 	/**
 	 * Normalized sort order for `is null` ORDER BY terms.
 	 */
-	get nullOrder(): 'asc'|'desc' {
-		const { direction } = this;
+	get nullOrder(): "asc"|"desc" {
+		const {direction} = this;
 		if (direction === SortDirection.DescendingNullsLast) {
 			return SortDirection.Ascending;
 		}
@@ -105,8 +105,8 @@ export class ConcreteSortDescriptor {
 	/**
 	 * The inequality operator to use in a cursor filter for this column.
 	 */
-	get operator(): '>'|'<' {
-		return this.direction === SortDirection.Ascending ? '>' : '<';
+	get operator(): ">"|"<" {
+		return this.direction === SortDirection.Ascending ? ">" : "<";
 	}
 
 	/**
@@ -153,14 +153,14 @@ export class ConcreteSortDescriptor {
 		if (value === null) {
 			if (!this.nullable) {
 				throw new (getErrorClass(validationCase))(
-					'Cursor value is null, but column is not nullable',
-					{ info: { value: null } },
+					"Cursor value is null, but column is not nullable",
+					{info: {value: null}},
 				);
 			}
 		} else if (!this.checkCursorValue(value)) {
 			throw new (getErrorClass(validationCase))(
-				'Cursor value does not match its column type',
-				{ info: { value, columnType: this.columnType } },
+				"Cursor value does not match its column type",
+				{info: {value, columnType: this.columnType}},
 			);
 		}
 
@@ -172,11 +172,11 @@ export class ConcreteSortDescriptor {
 			msg = validateResult;
 		} else {
 			isValid = validateResult;
-			msg = 'Invalid cursor value';
+			msg = "Invalid cursor value";
 		}
 
 		if (isValid) return value;
-		throw new (getErrorClass(validationCase))(msg, { info: { value } });
+		throw new (getErrorClass(validationCase))(msg, {info: {value}});
 	}
 
 	/**

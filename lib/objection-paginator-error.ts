@@ -1,4 +1,4 @@
-import { BatteriiError } from '@batterii/errors';
+import {BatteriiError} from "@batterii/errors";
 
 /**
  * The base class of errors defined in this module, for namespacing purposes.

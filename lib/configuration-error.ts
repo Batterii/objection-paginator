@@ -1,4 +1,4 @@
-import { ObjectionPaginatorError } from './objection-paginator-error';
+import {ObjectionPaginatorError} from "./objection-paginator-error";
 
 /**
  * Error class which indicates that a problem was found with the sort
@@ -11,6 +11,6 @@ import { ObjectionPaginatorError } from './objection-paginator-error';
  */
 export class ConfigurationError extends ObjectionPaginatorError {
 	static getDefaultMessage(): string {
-		return 'Configuration error';
+		return "Configuration error";
 	}
 }

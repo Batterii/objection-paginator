@@ -1,6 +1,6 @@
-import chai from 'chai';
-import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
+import chai from "chai";
+import sinon from "sinon";
+import sinonChai from "sinon-chai";
 
 // Add assertions from sinon-chai.
 chai.use(sinonChai);
