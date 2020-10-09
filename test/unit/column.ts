@@ -102,15 +102,15 @@ describe("Column", function() {
 			const result = Column.extractFromSql("select \"foo\" from \"bar\"");
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result!.columnName).to.equal("foo");
-			expect(result!.tableName).to.equal("bar");
+			expect(result!.columnName).to.equal("\"foo\"");
+			expect(result!.tableName).to.equal("\"bar\"");
 		});
 
 		it("omits the table name from the result, if specified", function() {
 			const result = Column.extractFromSql("select \"foo\" from \"bar\"", true);
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result!.columnName).to.equal("foo");
+			expect(result!.columnName).to.equal("\"foo\"");
 			expect(result!.tableName).to.be.undefined;
 		});
 
@@ -118,24 +118,24 @@ describe("Column", function() {
 			const result = Column.extractFromSql("select `foo` from `bar`");
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result!.columnName).to.equal("foo");
-			expect(result!.tableName).to.equal("bar");
+			expect(result!.columnName).to.equal("`foo`");
+			expect(result!.tableName).to.equal("`bar`");
 		});
 
 		it("supports backticks in double-quoted identifiers", function() {
 			const result = Column.extractFromSql("select \"fo`o\" from \"b`ar\"");
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result!.columnName).to.equal("fo`o");
-			expect(result!.tableName).to.equal("b`ar");
+			expect(result!.columnName).to.equal("\"fo`o\"");
+			expect(result!.tableName).to.equal("\"b`ar\"");
 		});
 
 		it("supports double quotes in backtick-quoted identifiers", function() {
 			const result = Column.extractFromSql("select `f\"oo` from `ba\"r`");
 
 			expect(result).to.be.an.instanceOf(Column);
-			expect(result!.columnName).to.equal("f\"oo");
-			expect(result!.tableName).to.equal("ba\"r");
+			expect(result!.columnName).to.equal("`f\"oo`");
+			expect(result!.tableName).to.equal("`ba\"r`");
 		});
 
 		it("returns null if the SQL string does not match any expected format", function() {

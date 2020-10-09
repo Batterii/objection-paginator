@@ -6,7 +6,7 @@ import {ConfigurationError} from "./configuration-error";
  * identifiers.
  *
  * @remarks
- * Ideally the abstractions we're workign with would be good enough that we can
+ * Ideally the abstractions we're working with would be good enough that we can
  * just pass column identifiers directly to Objection/Knex, but this is sadly
  * not the case at the moment, largely due to the trickery needed to
  * simultaneously support identifier mappers, while also ordering nulls in our
@@ -37,7 +37,7 @@ export class Column {
 	 * name delimiters will either be double quotes or backticks depending on the database being
 	 * used, so this pattern supports both.
 	 */
-	private static _sqlPattern = /^select ["`](.*?)["`] from ["`](.*?)["`]$/;
+	private static _sqlPattern = /^select (["`].*?["`]) from (["`].*?["`])$/;
 
 	/**
 	 * The name of the referenced database column.
