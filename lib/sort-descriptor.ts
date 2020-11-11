@@ -44,6 +44,11 @@ export enum ColumnType {
 	 * Indicates a boolean column.
 	 */
 	Boolean = "boolean",
+
+	/**
+	 * Indicates a date or datetime column. This will accept either stings or JS date instances.
+	 */
+	Date = "date",
 }
 
 /**

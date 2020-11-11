@@ -129,6 +129,8 @@ export class ConcreteSortDescriptor {
 				return isFinite(value);
 			case ColumnType.Boolean:
 				return isBoolean(value);
+			case ColumnType.Date:
+				return value instanceof Date || isString(value);
 			default:
 				return false;
 		}

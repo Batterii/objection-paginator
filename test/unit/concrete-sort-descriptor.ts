@@ -223,10 +223,24 @@ describe("ConcreteSortDescriptor", function() {
 			expect(descriptor.checkCursorValue(value)).to.equal(isFiniteResult);
 		});
 
-		it("returns false for any other column type", function() {
+		it("returns false for unknown column types", function() {
 			descriptor.columnType = "other column type" as ColumnType;
 
 			expect(descriptor.checkCursorValue(value)).to.be.false;
+		});
+
+		context("columnType is date", function() {
+			beforeEach(function() {
+				descriptor.columnType = ColumnType.Date;
+			});
+
+			it("checks the value with isString, if value is not a date instance", function() {
+				expect(descriptor.checkCursorValue(value)).to.equal(isStringResult);
+			});
+
+			it("returns true if value is a date instance", function() {
+				expect(descriptor.checkCursorValue(new Date())).to.be.true;
+			});
 		});
 	});
 

@@ -168,10 +168,9 @@ more to this story than that. Perhaps you need to change the sort direction.
 Cursors also need to be validated to avoid sending invalid queries to the
 database and causing unecessary DB errors.
 
-By default, the Paginator assumes that your columns are strings (as defined
-by [Knex][6]) and your sort direction is ascending. If you're sorting a column
-of a different data type, or you need a descending sort, all you have to do is
-specify these inside a full sort descriptor object.
+By default, the Paginator assumes that your columns are strings, and your sort direction is
+ascending. If you're sorting a column of a different data type, or you need a descending sort, all
+you have to do is specify these inside a full sort descriptor object.
 
 If, for example, I'm using an autoincrement integer id instead of a string guid,
 and I want to support sorting by height (stored as a float in inches) with
@@ -214,7 +213,7 @@ export class People extends Paginator<Person> {
 In case you are not using TypeScript and these enums aren't useful to you, they
 are implemented with string values.
 
-Sort directions match how they are defined in Objection and Knex, with one
+Sort directions match how they are defined in Objection and [Knex][6], with one
 additional option:
 
 - 'asc' for an ascending sort.
@@ -225,22 +224,26 @@ This final sort direction option is effectively the same as a descending sort,
 unless your column is nullable. See the section on nullable columns for more
 information.
 
-Column types match column type names as defined in Knex. Supported ones
-include the following:
+Supported column types include the following:
 
 - 'string'
 - 'integer'
 - 'float'
 - 'boolean'
+- 'date'
 
-Signs, lengths and precisions of these data types are not currently checked.
-Built in support for this may be added in the future, along with other data
-types defined in Knex such as 'datetime'.
+Signs, lengths and precisions of these data types are not currently checked. This is done for
+simplicity, as these type-checking features are less about preventing all database errors, and more
+about helping developers quickly identify obvious problems. The former would be a major challenge
+that is outside thie scope of this library.
 
-In the meantime, if you need to specify custom validation, you can do so with
-the `validate` property of your sort descriptors. If, for example, I need to
-ensure that an integer is positive (possibly necessary for unsigned int columns)
-I might do this:
+The date type accepts either javascript Date instances as cursor values, or strings of any kind.
+This leverages the `toJSON` method of JS Dates which automatically converts them to ISO strings,
+which are commpatible with the date types in all Knex-supported databases.
+
+If you need to specify custom validation, you can do so with the `validate` property of your sort
+descriptors. If, for example, I need to ensure that an integer is positive (possibly useful for
+unsigned int columns) I might do this:
 
 ```ts
 {
