@@ -43,11 +43,11 @@
 		"@batterii/generator-ts-class": "^0.2.0",
 		"@batterii/generator-ts-module": "^0.2.0",
 		"@batterii/generator-ts-test": "^0.1.2",
-		"@types/chai": "^4.2.13",
+		"@types/chai": "^4.2.14",
 		"@types/fs-extra": "^8.1.1",
-		"@types/lodash": "^4.14.161",
+		"@types/lodash": "^4.14.165",
 		"@types/mocha": "^7.0.2",
-		"@types/node": "^12.12.67",
+		"@types/node": "^12.19.4",
 		"@types/object-path": "^0.11.0",
 		"@types/sinon": "^7.5.2",
 		"@types/sinon-chai": "^3.2.5",
@@ -72,7 +72,7 @@
 		"@batterii/errors": "^2.2.0",
 		"lodash": "^4.17.20",
 		"nani": "^3.2.1",
-		"object-path": "^0.11.4"
+		"object-path": "^0.11.5"
 	},
 	"peerDependencies": {
 		"knex": "0.20.x",
