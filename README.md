@@ -196,7 +196,7 @@ export class People extends Paginator<Person> {
 			{
 				column: 'height',
 				columnType: ColumnType.Float,
-				sortDirection: SortDirection.Descending,
+				direction: SortDirection.Descending,
 			}
 			'firstName',
 			'lastName',
