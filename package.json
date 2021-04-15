@@ -1,6 +1,6 @@
 {
 	"name": "objection-paginator",
-	"version": "0.6.5",
+	"version": "0.6.6",
 	"description": "Paginated queries for Objection.js",
 	"keywords": [
 		"objection",
