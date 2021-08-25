@@ -1,5 +1,5 @@
 import {Model, QueryBuilder} from "objection";
-import {last, mapValues} from "lodash";
+import {isNil, last, mapValues} from "lodash";
 import {Cursor} from "./cursor";
 import {InvalidCursorError} from "./invalid-cursor-error";
 import {SortDescriptor} from "./sort-descriptor";
@@ -30,7 +30,7 @@ export interface GetPageOptions extends PaginatorOptions {
 	/**
 	 * The cursor to resume from, if any.
 	 */
-	cursor?: string;
+	cursor?: string|null;
 }
 
 /**
@@ -312,7 +312,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 * @param cursor - The cursor string from the previous page, if any.
 	 * @returns The fetched Page.
 	 */
-	async execute(cursor?: string): Promise<Page<TModel>> {
+	async execute(cursor?: string|null): Promise<Page<TModel>> {
 		const qry = this._getQuery(cursor);
 		const items = await qry;
 		const lastItem = last(items);
@@ -433,8 +433,8 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 * @param str - The encoded cursor string, if any.
 	 * @returns The cursor values, or undefined if there are none.
 	 */
-	private _getCursorValues(str?: string): any[] | undefined {
-		if (str !== undefined) return this._parseCursor(str).values;
+	private _getCursorValues(str?: string|null): any[] | undefined {
+		if (!isNil(str)) return this._parseCursor(str).values;
 	}
 
 	/**
@@ -447,7 +447,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 * @param qry - The query builder to mutate.
 	 * @param cursor - The cursor string from the last page, if any.
 	 */
-	private _applySortNode(qry: QueryBuilder<TModel>, cursor?: string): void {
+	private _applySortNode(qry: QueryBuilder<TModel>, cursor?: string|null): void {
 		this._getSortNode().apply(qry, this._getCursorValues(cursor));
 	}
 
@@ -475,7 +475,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 * @param cursor - The cursor string from the last page, if any.
 	 * @returns The final query to execute.
 	 */
-	private _getQuery(cursor?: string): QueryBuilder<TModel> {
+	private _getQuery(cursor?: string|null): QueryBuilder<TModel> {
 		const qry = this.getBaseQuery();
 		this._applySortNode(qry, cursor);
 		this._applyLimit(qry);

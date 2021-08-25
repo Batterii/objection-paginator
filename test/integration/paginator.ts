@@ -157,6 +157,23 @@ describe("Paginator (Integration)", function() {
 		expect(items[0].name).to.equal("Cool Guy");
 	});
 
+	it("supports explicit null or undefined as a cursor value", async function() {
+		const qry = new UserQuery({limit: 2});
+		let items: User[];
+
+		// First page.
+		({items} = await qry.execute(null));
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal("Steve Ripberger");
+		expect(items[1].name).to.equal("Terd Ferguson");
+
+		// First page again.
+		({items} = await qry.execute(undefined));
+		expect(items).to.have.length(2);
+		expect(items[0].name).to.equal("Steve Ripberger");
+		expect(items[1].name).to.equal("Terd Ferguson");
+	});
+
 	it("supports multiple sorts, selected by a string argument", async function() {
 		const qry = new UserQuery({limit: 2, sort: "reverse"});
 		let items: User[];

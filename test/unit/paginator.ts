@@ -652,11 +652,34 @@ describe("Paginator", function() {
 			expect(result).to.equal(cursorValues);
 		});
 
-		it("returns undefined without parsing if no string is provided", function() {
+		it("returns undefined without parsing if no argument is provided", function() {
 			const result = (paginator as any)._getCursorValues();
 
 			expect(parseCursor).to.not.be.called;
 			expect(result).to.be.undefined;
+		});
+
+		it("returns undefined without parsing if null is provided", function() {
+			const result = (paginator as any)._getCursorValues(null);
+
+			expect(parseCursor).to.not.be.called;
+			expect(result).to.be.undefined;
+		});
+
+		it("returns undefined without parsing if undefined is provided", function() {
+			const result = (paginator as any)._getCursorValues(undefined);
+
+			expect(parseCursor).to.not.be.called;
+			expect(result).to.be.undefined;
+		});
+
+		it("supports empty string cursors", function() {
+			const result = (paginator as any)._getCursorValues("");
+
+			expect(parseCursor).to.be.calledOnce;
+			expect(parseCursor).to.be.calledOn(paginator);
+			expect(parseCursor).to.be.calledWith("");
+			expect(result).to.equal(cursorValues);
 		});
 	});
 
