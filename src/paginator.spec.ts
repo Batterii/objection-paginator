@@ -15,6 +15,7 @@ class TestModel extends Model {}
 class TestPaginator extends Paginator<TestModel> {
 	static sorts = {};
 
+	// eslint-disable-next-line class-methods-use-this
 	getBaseQuery(): QueryBuilder<TestModel> {
 		return {} as QueryBuilder<TestModel>;
 	}
@@ -28,6 +29,7 @@ interface OtherPaginatorArgs {
 class OtherPaginator extends Paginator<TestModel, OtherPaginatorArgs> {
 	static queryName = "Other";
 
+	// eslint-disable-next-line class-methods-use-this
 	getBaseQuery(): QueryBuilder<TestModel> {
 		return {} as QueryBuilder<TestModel>;
 	}

@@ -43,6 +43,7 @@ export class User extends Model {
 		return `${this.firstName} ${this.lastName}`;
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	$parseDatabaseJson(json: Pojo): Pojo {
 		/*
 		 * SQLite does not have a native boolean type. Knex will convert them
