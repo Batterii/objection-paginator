@@ -1,6 +1,6 @@
-import {ValidationCase, getErrorClass} from "../../lib/get-error-class";
-import {ConfigurationError} from "../../lib/configuration-error";
-import {InvalidCursorError} from "../../lib/invalid-cursor-error";
+import {ValidationCase, getErrorClass} from "./get-error-class";
+import {ConfigurationError} from "./configuration-error";
+import {InvalidCursorError} from "./invalid-cursor-error";
 import {expect} from "chai";
 
 describe("getValidationError", function() {

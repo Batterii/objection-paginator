@@ -1,7 +1,7 @@
 import {
 	ObjectionPaginatorError,
-} from "../../lib/objection-paginator-error";
-import {UnknownSortError} from "../../lib/unknown-sort-error";
+} from "./objection-paginator-error";
+import {UnknownSortError} from "./unknown-sort-error";
 import {expect} from "chai";
 
 describe("UnknownSortError", function() {

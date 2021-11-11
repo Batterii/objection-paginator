@@ -4,12 +4,12 @@ import {
 	OrderByDescriptor,
 	QueryBuilder,
 } from "objection";
-import {ConcreteSortDescriptor} from "../../lib/concrete-sort-descriptor";
-import {ConfigurationError} from "../../lib/configuration-error";
+import {ConcreteSortDescriptor} from "./concrete-sort-descriptor";
+import {ConfigurationError} from "./configuration-error";
 import {FakeQuery} from "@batterii/fake-query";
-import {SortDirection} from "../../lib/sort-descriptor";
-import {SortNode} from "../../lib/sort-node";
-import {ValidationCase} from "../../lib/get-error-class";
+import {SortDirection} from "./sort-descriptor";
+import {SortNode} from "./sort-node";
+import {ValidationCase} from "./get-error-class";
 import {expect} from "chai";
 import sinon from "sinon";
 

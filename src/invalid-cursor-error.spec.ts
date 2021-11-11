@@ -1,5 +1,5 @@
-import {InvalidCursorError} from "../../lib/invalid-cursor-error";
-import {ObjectionPaginatorError} from "../../lib/objection-paginator-error";
+import {InvalidCursorError} from "./invalid-cursor-error";
+import {ObjectionPaginatorError} from "./objection-paginator-error";
 import {expect} from "chai";
 
 describe("InvalidCursorError", function() {

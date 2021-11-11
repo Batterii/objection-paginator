@@ -1,5 +1,5 @@
-import {ConfigurationError} from "../../lib/configuration-error";
-import {ObjectionPaginatorError} from "../../lib/objection-paginator-error";
+import {ConfigurationError} from "./configuration-error";
+import {ObjectionPaginatorError} from "./objection-paginator-error";
 import {expect} from "chai";
 
 describe("ConfigurationError", function() {

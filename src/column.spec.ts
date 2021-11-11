@@ -1,7 +1,7 @@
 import {QueryBuilder as KnexQueryBuilder, Sql} from "knex";
 import {Model, QueryBuilder} from "objection";
-import {Column} from "../../lib/column";
-import {ConfigurationError} from "../../lib/configuration-error";
+import {Column} from "./column";
+import {ConfigurationError} from "./configuration-error";
 import {FakeQuery} from "@batterii/fake-query";
 import {expect} from "chai";
 import sinon from "sinon";

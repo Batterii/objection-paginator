@@ -3,16 +3,16 @@ import {
 	GetPageOptions,
 	InvalidCursorError,
 	Page,
-} from "../../lib";
-import {MemberRole, Membership} from "../lib/membership";
+} from ".";
+import {MemberRole, Membership} from "./test-utils/membership";
 import {Model, PartialModelObject, knexSnakeCaseMappers} from "objection";
-import {User, UserRole} from "../lib/user";
-import {Food} from "../lib/food";
+import {User, UserRole} from "./test-utils/user";
+import {Food} from "./test-utils/food";
 import Knex from "knex";
-import {MemberQuery} from "../lib/member-query";
-import {Project} from "../lib/project";
-import {UserQuery} from "../lib/user-query";
-import {alterCursor} from "../lib/alter-cursor";
+import {MemberQuery} from "./test-utils/member-query";
+import {Project} from "./test-utils/project";
+import {UserQuery} from "./test-utils/user-query";
+import {alterCursor} from "./test-utils/alter-cursor";
 import {expect} from "chai";
 import {is} from "nani";
 import {resolve as resolvePath} from "path";

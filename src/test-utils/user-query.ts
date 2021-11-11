@@ -1,4 +1,4 @@
-import {ColumnType, Paginator, SortDirection} from "../../lib";
+import {ColumnType, Paginator, SortDirection} from "..";
 import {User, UserRole} from "./user";
 import {QueryBuilder} from "objection";
 

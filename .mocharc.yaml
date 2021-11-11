@@ -1,9 +1,4 @@
-exclude:
-  - test/*.*
-  - test/lib/**
-extension: ts
 file:
-  - ./test/setup.ts
-recursive: true
+  - ./src/test-utils/setup.ts
 require:
   - ts-node/register

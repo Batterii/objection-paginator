@@ -1,12 +1,12 @@
-import {GetPageOptions, Page, Paginator} from "../../lib/paginator";
+import {GetPageOptions, Page, Paginator} from "./paginator";
 import {Model, QueryBuilder} from "objection";
-import {Cursor} from "../../lib/cursor";
+import {Cursor} from "./cursor";
 import {FakeQuery} from "@batterii/fake-query";
-import {InvalidCursorError} from "../../lib/invalid-cursor-error";
-import {SortNode} from "../../lib/sort-node";
-import {UnknownSortError} from "../../lib/unknown-sort-error";
+import {InvalidCursorError} from "./invalid-cursor-error";
+import {SortNode} from "./sort-node";
+import {UnknownSortError} from "./unknown-sort-error";
 import _ from "lodash";
-import {createSortNode} from "../../lib/create-sort-node";
+import {createSortNode} from "./create-sort-node";
 import {expect} from "chai";
 import sinon from "sinon";
 

@@ -1,5 +1,5 @@
 import {BatteriiError} from "@batterii/errors";
-import {ObjectionPaginatorError} from "../../lib/objection-paginator-error";
+import {ObjectionPaginatorError} from "./objection-paginator-error";
 import {expect} from "chai";
 
 describe("ObjectionPaginatorError", function() {

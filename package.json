@@ -16,23 +16,24 @@
 		"npm": ">=5.3"
 	},
 	"files": [
-		"dist/lib",
-		"dist/types"
+		"dist/",
+		"!dist/**/*.spec.js",
+		"!dist/**/*.test.js",
+		"!dist/test-utils/"
 	],
 	"scripts": {
 		"lint": "eslint . --ext .ts",
 		"lintf": "eslint . --ext .ts --fix",
 		"prebuild": "rm -rf dist",
 		"build": "tsc && tsc --project tsconfig-types.json",
-		"test": "mocha",
-		"test:unit": "mocha test/unit",
-		"test:integration": "mocha test/integration",
-		"test:build": "npm run build && mocha --config .mocharc-dist.yaml dist/test",
+		"test": "npm run test:unit && npm run test:integration",
+		"test:unit": "mocha dist/**/*.spec.js",
+		"test:integration": "mocha dist/**/*.test.js",
 		"preversion": "npm run lint && npm run test:build",
 		"prepublishOnly": "git push && git push --tags"
 	},
-	"main": "dist/lib/index.js",
-	"types": "dist/types/index.d.ts",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"devDependencies": {
 		"@batterii/eslint-config-vurvey": "^0.3.3",
 		"@batterii/fake-query": "^2.0.1",

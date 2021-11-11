@@ -1,10 +1,10 @@
-import * as getErrorClassModule from "../../lib/get-error-class";
-import {ColumnType, SortDirection} from "../../lib/sort-descriptor";
+import * as getErrorClassModule from "./get-error-class";
+import {ColumnType, SortDirection} from "./sort-descriptor";
 import {Model, QueryBuilder} from "objection";
-import {Column} from "../../lib/column";
-import {ConcreteSortDescriptor} from "../../lib/concrete-sort-descriptor";
-import {ConfigurationError} from "../../lib/configuration-error";
-import {ObjectionPaginatorError} from "../../lib/objection-paginator-error";
+import {Column} from "./column";
+import {ConcreteSortDescriptor} from "./concrete-sort-descriptor";
+import {ConfigurationError} from "./configuration-error";
+import {ObjectionPaginatorError} from "./objection-paginator-error";
 import _ from "lodash";
 import {expect} from "chai";
 import objectPath from "object-path";

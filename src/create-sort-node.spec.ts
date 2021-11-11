@@ -1,7 +1,7 @@
-import * as concreteDescriptorModule from "../../lib/concrete-sort-descriptor";
-import * as nodeModule from "../../lib/sort-node";
-import {SortDescriptor} from "../../lib/sort-descriptor";
-import {createSortNode} from "../../lib/create-sort-node";
+import * as concreteDescriptorModule from "./concrete-sort-descriptor";
+import * as nodeModule from "./sort-node";
+import {SortDescriptor} from "./sort-descriptor";
+import {createSortNode} from "./create-sort-node";
 import {expect} from "chai";
 import sinon from "sinon";
 

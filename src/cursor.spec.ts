@@ -1,7 +1,7 @@
 import * as encodeObjectModule from "@batterii/encode-object";
 import * as nani from "nani";
-import {Cursor, CursorObj} from "../../lib/cursor";
-import {InvalidCursorError} from "../../lib/invalid-cursor-error";
+import {Cursor, CursorObj} from "./cursor";
+import {InvalidCursorError} from "./invalid-cursor-error";
 import _ from "lodash";
 import {expect} from "chai";
 import sinon from "sinon";
