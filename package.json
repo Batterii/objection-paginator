@@ -31,7 +31,7 @@
 		"test": "npm run build && mocha dist/**/*.spec.js dist/**/*.test.js",
 		"test:unit": "npm run build && mocha dist/**/*.spec.js",
 		"test:integration": "npm run build && mocha dist/**/*.test.js",
-		"preversion": "npm run lint && npm run test:build",
+		"preversion": "npm run lint && npm run test",
 		"prepublishOnly": "git push && git push --tags"
 	},
 	"main": "dist/index.js",
