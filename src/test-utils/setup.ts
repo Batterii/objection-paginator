@@ -6,6 +6,6 @@ import sinonChai from "sinon-chai";
 chai.use(sinonChai);
 
 // Restore sinon's static sandbox after each test.
-afterEach(function() {
+afterEach(() => {
 	sinon.restore();
 });

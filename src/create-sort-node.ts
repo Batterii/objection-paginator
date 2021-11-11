@@ -10,5 +10,5 @@ import {SortNode} from "./sort-node";
 export function createSortNode(
 	descriptors: (SortDescriptor|string)[],
 ): SortNode {
-	return new SortNode(descriptors.map((d) => new ConcreteSortDescriptor(d)));
+	return new SortNode(descriptors.map(d => new ConcreteSortDescriptor(d)));
 }

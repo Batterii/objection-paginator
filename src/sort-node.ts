@@ -228,12 +228,12 @@ export class SortNode {
 		const {descriptor, child} = this;
 		const {column} = descriptor;
 		if (child) {
-			qry.where((sub0) => {
+			qry.where(sub0 => {
 				sub0
-					.where((sub1) => {
+					.where(sub1 => {
 						this.applyInequality(sub1, value);
 					})
-					.orWhere((sub1) => {
+					.orWhere(sub1 => {
 						sub1.where({[column]: value});
 						child.applyCursorValues(sub1, childValues);
 					});
@@ -319,7 +319,7 @@ export class SortNode {
 		const {descriptor, child} = this as Required<SortNode>;
 		const {column, direction} = descriptor;
 		if (direction === SortDirection.Descending) {
-			qry.whereNotNull(column).orWhere((sub) => {
+			qry.whereNotNull(column).orWhere(sub => {
 				sub.whereNull(column);
 				child.applyCursorValues(sub, childValues);
 			});

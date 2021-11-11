@@ -35,12 +35,12 @@ describe("Paginator (Integration)", function() {
 
 		Model.knex(knex);
 
-		await knex.schema.createTable("foods", (table) => {
+		await knex.schema.createTable("foods", table => {
 			table.increments("id").primary();
 			table.string("name").notNullable();
 		});
 
-		await knex.schema.createTable("users", (table) => {
+		await knex.schema.createTable("users", table => {
 			table.increments("id").primary();
 			table.string("firstName").notNullable();
 			table.string("lastName").notNullable();
@@ -54,12 +54,12 @@ describe("Paginator (Integration)", function() {
 				.onDelete("SET NULL");
 		});
 
-		await knex.schema.createTable("projects", (table) => {
+		await knex.schema.createTable("projects", table => {
 			table.increments("id").primary();
 			table.string("name").unique().notNullable();
 		});
 
-		await knex.schema.createTable("memberships", (table) => {
+		await knex.schema.createTable("memberships", table => {
 			table.increments("id").primary();
 			table
 				.integer("projectId")
