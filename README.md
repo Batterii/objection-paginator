@@ -398,7 +398,7 @@ ORDER BY and WHERE clauses applied by the paginator.
 If, for example, we have a `height` field in our Person model, but we may or may
 not know the height of an individual person. We can account for this by adding
 a `nullable: true` to our sort descriptor for the height field, and updating the
-sort direction to put nulls last. The reuslt will be people ordered tallest to
+sort direction to put nulls last. The result will be people ordered tallest to
 shortest, with the people whose height we don't know at the end:
 
 ```ts
@@ -422,7 +422,7 @@ export class People extends Paginator<Person> {
 				column: 'height',
 				columnType: ColumnType.Float,
 				nullable: true,
-				direction: SortDirection.DescendingNullsFirst,
+				direction: SortDirection.DescendingNullsLast,
 			}
 			'firstName',
 			'lastName',
@@ -438,7 +438,7 @@ export class People extends Paginator<Person> {
 
 This library explicitly specifies how to sort nulls, so regardless of what
 database you are using, nulls will occur last in an ascending sort, first in a
-descending sort, and of course last in a descending nulls-first sort.
+descending sort, and of course last in a descending nulls-last sort.
 
 ### Nullable Relationships
 Nullable column support works even if the referenced column is from a different
