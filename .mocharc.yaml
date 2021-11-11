@@ -1,4 +1,4 @@
 file:
-  - ./src/test-utils/setup.ts
+  - ./dist/test-utils/setup.js
 require:
-  - ts-node/register
+  - source-map-support/register

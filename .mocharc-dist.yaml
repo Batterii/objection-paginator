@@ -1,8 +1,0 @@
-exclude:
-  - dist/test/*.*
-  - dist/test/lib/**
-file:
-  - dist/test/setup.js
-recursive: true
-require:
-  - source-map-support/register
