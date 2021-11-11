@@ -16,10 +16,12 @@
 		"npm": ">=5.3"
 	},
 	"files": [
-		"dist/",
+		"dist",
+		"!dist/test-utils/",
 		"!dist/**/*.spec.js",
+		"!dist/**/*.spec.js.map",
 		"!dist/**/*.test.js",
-		"!dist/test-utils/"
+		"!dist/**/*.test.js.map"
 	],
 	"scripts": {
 		"lint": "eslint . --ext .ts",
