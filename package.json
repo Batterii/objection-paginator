@@ -20,10 +20,6 @@
 		"dist/types"
 	],
 	"scripts": {
-		"generate": "yo --local-only",
-		"generate:class": "yo @batterii/ts-class  --local-only ",
-		"generate:module": "yo @batterii/ts-module --local-only ",
-		"generate:test": "yo @batterii/ts-test --local-only ",
 		"lint": "eslint . --ext .ts",
 		"lintf": "eslint . --ext .ts --fix",
 		"prebuild": "rm -rf dist",
