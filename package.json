@@ -35,6 +35,7 @@
 	"types": "dist/types/index.d.ts",
 	"devDependencies": {
 		"@batterii/eslint-config-ts": "^2.2.2",
+		"@batterii/fake-query": "^2.0.1",
 		"@types/chai": "^4.2.22",
 		"@types/fs-extra": "^8.1.2",
 		"@types/lodash": "^4.14.176",
