@@ -1,9 +1,4 @@
-import {
-	ColumnType,
-	GetPageOptions,
-	InvalidCursorError,
-	Page,
-} from ".";
+import {ColumnType, GetPageOptions, InvalidCursorError, Page} from ".";
 import {MemberRole, Membership} from "./test-utils/membership";
 import {Model, PartialModelObject, knexSnakeCaseMappers} from "objection";
 import {User, UserRole} from "./test-utils/user";
@@ -20,7 +15,7 @@ import {unlink} from "fs-extra";
 
 const dbFile = resolvePath(__dirname, "../../test.db");
 
-describe("Paginator (Integration)", function() {
+describe("Paginator", function() {
 	let knex: Knex;
 
 	before(async function() {

@@ -1,4 +1,2 @@
-file:
-  - ./dist/test-utils/setup.js
 require:
   - source-map-support/register
