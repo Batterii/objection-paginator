@@ -46,9 +46,9 @@
 		"chai": "^4.3.4",
 		"eslint": "^7.32.0",
 		"fs-extra": "^10.1.0",
-		"knex": "^0.21.21",
+		"knex": "^2.2.0",
 		"mocha": "^9.1.3",
-		"objection": "^2.2.18",
+		"objection": "^3.0.1",
 		"source-map-support": "^0.5.20",
 		"sqlite3": "^5.0.2",
 		"typescript": "^4.4.4"
@@ -61,7 +61,7 @@
 		"object-path": "^0.11.8"
 	},
 	"peerDependencies": {
-		"knex": "0.20.x || 0.21.x",
-		"objection": "2.x"
+		"knex": "^2.2.0",
+		"objection": "^3.0.1"
 	}
 }

@@ -3,7 +3,7 @@ import {MemberRole, Membership} from "./test-utils/membership";
 import {Model, PartialModelObject, knexSnakeCaseMappers} from "objection";
 import {User, UserRole} from "./test-utils/user";
 import {Food} from "./test-utils/food";
-import Knex from "knex";
+import createKnex, {Knex} from "knex";
 import {MemberQuery} from "./test-utils/member-query";
 import {Project} from "./test-utils/project";
 import {UserQuery} from "./test-utils/user-query";
@@ -19,7 +19,7 @@ describe("Paginator", function() {
 	let knex: Knex;
 
 	before(async function() {
-		knex = Knex({ // eslint-disable-line new-cap
+		knex = createKnex({
 			client: "sqlite3",
 			useNullAsDefault: true,
 			connection: {
