@@ -1,6 +1,6 @@
 import {Model, Pojo} from "objection";
-import {Food} from "./food";
-import {Membership} from "./membership";
+import {Food} from "./food.js";
+import {Membership} from "./membership.js";
 
 export enum UserRole {
 	RegularUser = "regularUser",

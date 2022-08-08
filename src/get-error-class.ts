@@ -1,6 +1,6 @@
-import {ConfigurationError} from "./configuration-error";
-import {InvalidCursorError} from "./invalid-cursor-error";
-import {ObjectionPaginatorError} from "./objection-paginator-error";
+import {ConfigurationError} from "./configuration-error.js";
+import {InvalidCursorError} from "./invalid-cursor-error.js";
+import {ObjectionPaginatorError} from "./objection-paginator-error.js";
 
 /**
  * An internal enum, used to indicate what kind of validation error to throw

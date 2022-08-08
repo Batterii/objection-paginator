@@ -1,10 +1,6 @@
-import {
-	InvalidJsonError,
-	decodeObject,
-	encodeObject,
-} from "@batterii/encode-object";
-import {isArray, isObjectLike, isString} from "lodash";
-import {InvalidCursorError} from "./invalid-cursor-error";
+import {InvalidJsonError, decodeObject, encodeObject} from "@batterii/encode-object";
+import _ from "lodash";
+import {InvalidCursorError} from "./invalid-cursor-error.js";
 import {is} from "nani";
 
 /**
@@ -86,28 +82,28 @@ export class Cursor {
 	 * @returns The unmutated value.
 	 */
 	static validateObject(value: any): CursorObj {
-		if (!isObjectLike(value)) {
+		if (!_.isObjectLike(value)) {
 			throw new InvalidCursorError(
 				"Cursor is not object-like",
 				{info: {cursor: value}},
 			);
 		}
 
-		if (!isString(value.q)) {
+		if (!_.isString(value.q)) {
 			throw new InvalidCursorError(
 				"Cursor 'q' is not a string",
 				{info: {q: value.q}},
 			);
 		}
 
-		if (!isString(value.s)) {
+		if (!_.isString(value.s)) {
 			throw new InvalidCursorError(
 				"Cursor 's' is not a string",
 				{info: {s: value.s}},
 			);
 		}
 
-		if (value.v !== undefined && !isArray(value.v)) {
+		if (value.v !== undefined && !_.isArray(value.v)) {
 			throw new InvalidCursorError(
 				"Cursor 'v' is not an array",
 				{info: {v: value.v}},

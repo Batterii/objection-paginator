@@ -1,4 +1,4 @@
-import {ObjectionPaginatorError} from "./objection-paginator-error";
+import {ObjectionPaginatorError} from "./objection-paginator-error.js";
 
 /**
  * Error class which indicates that a problem was found with the sort

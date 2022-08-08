@@ -1,5 +1,5 @@
 import {Model} from "objection";
-import {User} from "./user";
+import {User} from "./user.js";
 
 export enum MemberRole {
 	RegularMember = "regularMember",

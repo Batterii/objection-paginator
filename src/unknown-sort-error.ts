@@ -1,4 +1,4 @@
-import {ObjectionPaginatorError} from "./objection-paginator-error";
+import {ObjectionPaginatorError} from "./objection-paginator-error.js";
 
 /**
  * Error class indicating that a sort name was specified which does not exist

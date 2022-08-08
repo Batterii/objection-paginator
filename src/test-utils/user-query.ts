@@ -1,5 +1,5 @@
-import {ColumnType, Paginator, SortDirection} from "..";
-import {User, UserRole} from "./user";
+import {ColumnType, Paginator, SortDirection} from "../index.js";
+import {User, UserRole} from "./user.js";
 import {QueryBuilder} from "objection";
 
 export class UserQuery extends Paginator<User> {

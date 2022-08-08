@@ -15,6 +15,7 @@
 		"node": ">=12",
 		"npm": ">=5.3"
 	},
+	"type": "module",
 	"files": [
 		"dist",
 		"!dist/test-utils/",

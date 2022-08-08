@@ -1,7 +1,7 @@
-import {ColumnType, Paginator} from "..";
-import {MemberRole} from "./membership";
+import {ColumnType, Paginator} from "../index.js";
+import {MemberRole} from "./membership.js";
 import {QueryBuilder} from "objection";
-import {User} from "./user";
+import {User} from "./user.js";
 
 export interface MemberQueryArgs {
 	projectId: number;

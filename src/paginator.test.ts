@@ -1,22 +1,26 @@
-import {ColumnType, GetPageOptions, InvalidCursorError, Page} from ".";
-import {MemberRole, Membership} from "./test-utils/membership";
+import {ColumnType, GetPageOptions, InvalidCursorError, Page} from "./index.js";
+import {MemberRole, Membership} from "./test-utils/membership.js";
 import {Model, PartialModelObject, knexSnakeCaseMappers} from "objection";
-import {User, UserRole} from "./test-utils/user";
-import {Food} from "./test-utils/food";
-import createKnex, {Knex} from "knex";
-import {MemberQuery} from "./test-utils/member-query";
-import {Project} from "./test-utils/project";
-import {UserQuery} from "./test-utils/user-query";
-import {alterCursor} from "./test-utils/alter-cursor";
+import {User, UserRole} from "./test-utils/user.js";
+import {Food} from "./test-utils/food.js";
+import Knex from "knex";
+import {MemberQuery} from "./test-utils/member-query.js";
+import {Project} from "./test-utils/project.js";
+import {UserQuery} from "./test-utils/user-query.js";
+import {alterCursor} from "./test-utils/alter-cursor.js";
 import {expect} from "chai";
 import {is} from "nani";
-import {resolve as resolvePath} from "path";
-import {unlink} from "fs-extra";
+import {dirname, resolve as resolvePath} from "path";
+import {fileURLToPath} from "url";
+import fse from "fs-extra";
 
+const createKnex = Knex as any; // Knex typings are stupid.
+const {unlink} = fse;
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbFile = resolvePath(__dirname, "../../test.db");
 
 describe("Paginator", function() {
-	let knex: Knex;
+	let knex: Knex.Knex;
 
 	before(async function() {
 		knex = createKnex({

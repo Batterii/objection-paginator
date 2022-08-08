@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "NodeNext",
 		"outDir": "dist",
 		"target": "es2017",
 		"strictNullChecks": true,

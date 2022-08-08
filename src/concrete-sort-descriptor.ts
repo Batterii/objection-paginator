@@ -1,15 +1,10 @@
-import {
-	ColumnType,
-	SortDescriptor,
-	SortDirection,
-	ValidationFunction,
-} from "./sort-descriptor";
+import {ColumnType, SortDescriptor, SortDirection, ValidationFunction} from "./sort-descriptor.js";
 import {Model, QueryBuilder} from "objection";
-import {ValidationCase, getErrorClass} from "./get-error-class";
-import {defaults, isBoolean, isFinite, isInteger, isString} from "lodash";
-import {Column} from "./column";
-import {ConfigurationError} from "./configuration-error";
-import {get as getPath} from "object-path";
+import {ValidationCase, getErrorClass} from "./get-error-class.js";
+import _ from "lodash";
+import {Column} from "./column.js";
+import {ConfigurationError} from "./configuration-error.js";
+import objectPath from "object-path";
 
 /**
  * Represents a single sort descriptor in a user-specified sort.
@@ -56,10 +51,10 @@ export class ConcreteSortDescriptor {
 	 */
 	constructor(descriptor: SortDescriptor | string) {
 		// Normalize shortcut descriptors.
-		if (isString(descriptor)) descriptor = {column: descriptor};
+		if (_.isString(descriptor)) descriptor = {column: descriptor};
 
 		// Assign descriptor properties with defaults.
-		defaults(this, descriptor, {
+		_.defaults(this, descriptor, {
 			columnType: ColumnType.String,
 			nullable: false,
 			direction: SortDirection.Ascending,
@@ -122,15 +117,15 @@ export class ConcreteSortDescriptor {
 	checkCursorValue(value: any): boolean {
 		switch (this.columnType) {
 			case ColumnType.String:
-				return isString(value);
+				return _.isString(value);
 			case ColumnType.Integer:
-				return isInteger(value);
+				return _.isInteger(value);
 			case ColumnType.Float:
-				return isFinite(value);
+				return _.isFinite(value);
 			case ColumnType.Boolean:
-				return isBoolean(value);
+				return _.isBoolean(value);
 			case ColumnType.Date:
-				return value instanceof Date || isString(value);
+				return value instanceof Date || _.isString(value);
 			default:
 				return false;
 		}
@@ -169,7 +164,7 @@ export class ConcreteSortDescriptor {
 		const validateResult = this.validate ? this.validate(value) : true;
 		let isValid: boolean;
 		let msg: string | undefined;
-		if (isString(validateResult)) {
+		if (_.isString(validateResult)) {
 			isValid = false;
 			msg = validateResult;
 		} else {
@@ -193,7 +188,7 @@ export class ConcreteSortDescriptor {
 	 * @returns The fetched cursor value, or null if none was found.
 	 */
 	getCursorValue(entity: object): any {
-		let value = getPath(entity, this.valuePath);
+		let value = objectPath.get(entity, this.valuePath);
 		if (value === undefined) value = null;
 		return this.validateCursorValue(value, ValidationCase.Configuration);
 	}

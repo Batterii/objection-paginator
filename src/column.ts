@@ -1,5 +1,5 @@
 import {Model, QueryBuilder} from "objection";
-import {ConfigurationError} from "./configuration-error";
+import {ConfigurationError} from "./configuration-error.js";
 
 /**
  * An internal utility class for performing operations on user-provided column

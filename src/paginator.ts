@@ -1,11 +1,11 @@
 import {Model, QueryBuilder} from "objection";
-import {isNil, last, mapValues} from "lodash";
-import {Cursor} from "./cursor";
-import {InvalidCursorError} from "./invalid-cursor-error";
-import {SortDescriptor} from "./sort-descriptor";
-import {SortNode} from "./sort-node";
-import {UnknownSortError} from "./unknown-sort-error";
-import {createSortNode} from "./create-sort-node";
+import _ from "lodash";
+import {Cursor} from "./cursor.js";
+import {InvalidCursorError} from "./invalid-cursor-error.js";
+import {SortDescriptor} from "./sort-descriptor.js";
+import {SortNode} from "./sort-node.js";
+import {UnknownSortError} from "./unknown-sort-error.js";
+import {createSortNode} from "./create-sort-node.js";
 
 /**
  * Paginator instance configuration.
@@ -265,7 +265,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 * @returns The created map from sort names to sort nodes.
 	 */
 	private static _createSortNodes(): Record<string, SortNode> {
-		return this.sorts ? mapValues(this.sorts, createSortNode) : {};
+		return this.sorts ? _.mapValues(this.sorts, createSortNode) : {};
 	}
 
 	/**
@@ -315,7 +315,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	async execute(cursor?: string|null): Promise<Page<TModel>> {
 		const qry = this._getQuery(cursor);
 		const items = await qry;
-		const lastItem = last(items);
+		const lastItem = _.last(items);
 		let remaining = 0;
 
 		if (lastItem) {
@@ -434,7 +434,7 @@ export abstract class Paginator<TModel extends Model, TArgs = undefined> {
 	 * @returns The cursor values, or undefined if there are none.
 	 */
 	private _getCursorValues(str?: string|null): any[] | undefined {
-		if (!isNil(str)) return this._parseCursor(str).values;
+		if (!_.isNil(str)) return this._parseCursor(str).values;
 	}
 
 	/**

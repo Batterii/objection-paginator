@@ -1,9 +1,9 @@
 import {Model, OrderByDescriptor, QueryBuilder} from "objection";
-import {ConcreteSortDescriptor} from "./concrete-sort-descriptor";
-import {ConfigurationError} from "./configuration-error";
-import {SortDirection} from "./sort-descriptor";
-import {ValidationCase} from "./get-error-class";
-import {isEmpty} from "lodash";
+import {ConcreteSortDescriptor} from "./concrete-sort-descriptor.js";
+import {ConfigurationError} from "./configuration-error.js";
+import {SortDirection} from "./sort-descriptor.js";
+import {ValidationCase} from "./get-error-class.js";
+import _ from "lodash";
 
 /**
  * An internal class used to apply sorting and cursor filters to Objection
@@ -54,7 +54,7 @@ export class SortNode {
 		this.anyNullable = firstDescriptor.nullable;
 
 		const subdescriptors = descriptors.slice(1);
-		if (!isEmpty(subdescriptors)) {
+		if (!_.isEmpty(subdescriptors)) {
 			this.child = new SortNode(subdescriptors);
 			this.anyNullable = this.anyNullable || this.child.anyNullable;
 		}
