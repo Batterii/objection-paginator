@@ -57,12 +57,13 @@
 	"dependencies": {
 		"@batterii/encode-object": "^2.1.1",
 		"@batterii/errors": "^2.2.0",
+		"esm": "^3.2.25",
 		"lodash": "^4.17.21",
 		"nani": "^3.2.1",
 		"object-path": "^0.11.8"
 	},
 	"peerDependencies": {
-		"knex": "^2.2.0",
-		"objection": "^3.0.1"
+		"knex": ">=0.21.21 <3",
+		"objection": ">=2.2 <4"
 	}
 }
