@@ -15,12 +15,11 @@ import {fileURLToPath} from "url";
 import fse from "fs-extra";
 
 const createKnex = Knex as any; // Knex typings are stupid.
-const {unlink} = fse;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbFile = resolvePath(__dirname, "../../test.db");
 
 describe("Paginator", function() {
-	let knex: Knex.Knex;
+	let knex: any; // Still stupid.
 
 	before(async function() {
 		knex = createKnex({
@@ -130,7 +129,7 @@ describe("Paginator", function() {
 
 	after(async function() {
 		await knex.destroy();
-		await unlink(dbFile);
+		await fse.unlink(dbFile);
 	});
 
 	it("paginates a query with a default sort", async function() {

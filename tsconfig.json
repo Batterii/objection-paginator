@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "NodeNext",
-		"outDir": "dist",
+		"outDir": "dist/mjs",
 		"target": "es2017",
 		"strictNullChecks": true,
 		"sourceMap": true,
@@ -9,6 +9,6 @@
 		"esModuleInterop": true
 	},
 	"include": [
-		"src/**/*"
+		"src/**/*",
 	],
 }

@@ -18,21 +18,31 @@
 	"type": "module",
 	"files": [
 		"dist",
-		"!dist/test-utils/",
+		"!dist/**/test-utils/",
 		"!dist/**/*.test.js",
 		"!dist/**/*.test.js.map"
 	],
+	"exports": {
+		".": {
+			"import": "./dist/mjs/index.js",
+			"require": "./dist/cjs/index.js",
+			"types": "./dist/types/index.d.ts"
+		}
+	},
+	"main": "./dist/cjs/index.js",
+	"types": "./dist/types/index.d.ts",
 	"scripts": {
 		"lint": "eslint . --ext .ts",
 		"lintf": "eslint . --ext .ts --fix",
-		"prebuild": "rm -rf dist",
-		"build": "tsc && tsc --project tsconfig-types.json",
-		"test": "npm run build && mocha dist/**/*.test.js",
-		"preversion": "npm run lint && npm run test",
+		"build:mjs": "rm -rf dist/mjs && tsc",
+		"build:cjs": "rm -rf dist/cjs && tsc -p tsconfig-cjs.json && ./fixup-cjs.sh",
+		"build:types": "rm -rf dist/types && tsc -p tsconfig-types.json",
+		"build": "npm run build:mjs && npm run build:cjs && npm run build:types",
+		"test:run": "mocha dist/mjs/**/*.test.js",
+		"test": "npm run build:mjs && npm run test:run",
+		"preversion": "npm run lint && npm run build && npm run test:run",
 		"prepublishOnly": "git push && git push --tags"
 	},
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
 	"devDependencies": {
 		"@batterii/eslint-config-vurvey": "^0.3.3",
 		"@batterii/fake-query": "^2.0.1",
